@@ -2,6 +2,9 @@
 #define _UTILS_H_
 
 #include <sys/stat.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <stdlib.h>
 
 #define BAUDRATE B38400
 #define MODEMDEVICE "/dev/ttyS1"
@@ -29,44 +32,13 @@
 #define TIMEOUT		3
 #define NUMTRIES	3
 
-unsigned char* lastPackage;
-unsigned int lastPackageSize;
-unsigned char sucessLastPackage = FALSE;
-unsigned char sequenceNumber = 0;
-unsigned char numberTries = 0;
+extern unsigned char* lastPackage;
+extern unsigned int lastPackageSize;
+extern unsigned char sequenceNumber;
+extern unsigned char numberTries;
+extern int fd;
 
-int flag_recebeu = 0;
-int fd;
+void writeTimeOut();
+int fsize(FILE* file);
 
-void writeTimeOut()
-{
-  if(flag_recebeu == 0 && numberTries < 4){
-    printf("chamada # %d acabou\n", numberTries);
-    numberTries++;
-    write(fd,lastPackage,lastPackageSize);
-    alarm(3);
-  }
-  if (numberTries == 3){
-    printf("FALHOU\n");
-    exit(-1);
-  }
-}
-
-int fsize(FILE* file) {
-    long int currPos = ftell(file);
-
-    if (fseek(file, 0, SEEK_END) == -1){
-        perror("file size: ");
-		return -1;
-	}
-
-	// saving file size
-	long int size = ftell(file);
-
-	// seeking to the previously saved position
-	fseek(file, 0, currPos);
-
-	// returning size
-return size;
-}
 #endif
