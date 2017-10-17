@@ -42,7 +42,7 @@ int main(int argc, char** argv) {
 
 		//SEND START PACK
 		unsigned char * controlBuff = controlPacking(C_START,fileSize,argv[3],strlen(argv[3]),&length);
-		//llwrite(fd,controlBuff,length);
+		llwrite(fd,controlBuff,length);
 
 		// for(j=0; j < length; j++)
     //   printf("Start pack hex: %x\n", controlBuff[j]);
@@ -63,7 +63,7 @@ int main(int argc, char** argv) {
 			for(j=0; j < MAX_SIZE+PACKING_HEADER_SIZE; j++)
 	      printf("Data pack: %x\n", dataBuff[j]);
 				printf("END FOR\n");
-			//llwrite(fd,dataBuff,MAX_SIZE+PACKING_HEADER_SIZE);
+			llwrite(fd,dataBuff,MAX_SIZE+PACKING_HEADER_SIZE);
 			free(dataBuff);
 		}
 
@@ -85,16 +85,68 @@ int main(int argc, char** argv) {
 
     if(atoi(argv[2]) == RECEIVER){
       llopen(argv[1],RECEIVER);
+
+			unsigned int length = MAX_SIZE;
+
+			unsigned char* controlBuff = malloc(length);
+			controlBuff = llread(fd,controlBuff,&length);
+
+			if(controlBuff[0]!=C_START)
+				printf("First packet read was not START identifier\n");
+
+			unsigned int* fileSize;
+			char * fileName;
+
+			if(controlBuff[1]==0x00){
+				fileSize = (unsigned int*)(controlBuff+3);
+				printf("Size: %d\n",*fileSize);
+				fileName = malloc((unsigned int)controlBuff[8]+1);
+				memcpy(fileName,controlBuff+9,(unsigned int)controlBuff[8]);
+				printf("Name: %s\n",fileName);
+			}
+
+			unsigned char* buff = malloc(*fileSize);
+
+			unsigned int index = 0;
+			unsigned int blocks = *fileSize / MAX_SIZE;
+			printf("blocks : %d\n",blocks);
+
+			unsigned int dataBuffLength = MAX_SIZE + PACKING_HEADER_SIZE;
+			unsigned char* dataBuff = malloc(dataBuffLength);
+			for (index = 0; index <= blocks; index++) {
+
+				dataBuff = llread(fd,dataBuff,&dataBuffLength);
+
+				for(j=0; j < dataBuffLength; j++)
+					printf("Data pack: %x\n", dataBuff[j]);
+				printf("END FOR\n");
+
+				if (dataBuff[0] != 0x00 && dataBuff[0]!=C_END ){
+					printf("Packet read after START did not contain data END nor DATA identifier\n");
+				}
+
+				if (dataBuff == NULL){
+					free(dataBuff);
+					continue;
+				}
+
+				length = dataBuff[3] + dataBuff[2]*256;
+				printf("Block length: %d", length);
+
+				unsigned int i;
+				for (i = 0; i < length; i++) {
+					buff[index*MAX_SIZE+i] = dataBuff[i+4];
+				}
+
+				free(dataBuff);
+			}
+
       //llwrite(fd,(unsigned char*)argv[2], atoi(argv[3]));
-      unsigned char* buff = malloc(12000);
+      //unsigned char* buff = malloc(12000);
 			//unsigned char* buffer[MAX_SIZE+PACKING_HEADER_SIZE];
 
-      FILE * output = fopen("test_ouput.gif","wb");
+      FILE * output = fopen(fileName,"wb");
       if(output == NULL) perror("output error");
-
-      unsigned int length = 0;
-
-			buff = llread(fd,buff,&length);
 
 			/*printf("byteDestuffingFunction after: \n");
 			for(i =0; i<length; i++)
@@ -107,8 +159,7 @@ int main(int argc, char** argv) {
       //while((length=llread(fd,buff))>=0){
       printf("entar while\n");
       //  if(length<0)continue;
-      printf("tamanho a ser escrito: %d\n",length-4);
-      fwrite(buff+4,sizeof(char),length-4,output);
+      fwrite(buff,sizeof(char),*fileSize,output);
       printf("acaba while\n");
       //}
 
