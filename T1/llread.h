@@ -7,7 +7,7 @@
 unsigned char* byteDestuffing(unsigned char* buffer, unsigned int* length);
 int stateMachineRead(int fd);
 int sendHeader(unsigned char c);
-int llread(int fd, unsigned char* buffer);
+unsigned char* llread(int fd, unsigned char* buffer,unsigned int* length);
 
 
 

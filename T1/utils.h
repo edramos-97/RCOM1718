@@ -15,8 +15,16 @@
 #define TRANSMITTER	0
 #define RECEIVER	1
 
-#define SUPERVISION_SIZE	5
+//application
 #define PACKING_HEADER_SIZE 4
+#define C_START 0X02
+#define C_END 0x03
+#define C_DATA 0X00
+#define MAX_SIZE 512
+#define TIMEOUT		3
+#define NUMTRIES	3
+
+#define SUPERVISION_SIZE	5
 #define INFO_HEADER_SIZE	4
 #define INFO_TAIL_SIZE		2
 
@@ -28,9 +36,6 @@
 #define C_INFO(x) (0b00000000 + ((x) << 6))
 #define C_RR(x) (0b00000101 + ((x) << 7))
 #define C_REJ(x) (0b00000001 + ((x) << 7))
-
-#define TIMEOUT		3
-#define NUMTRIES	3
 
 extern unsigned char* lastPackage;
 extern unsigned int lastPackageSize;

@@ -3,12 +3,12 @@
 char duplicate_flag = FALSE;
 char sequence_number_read = 0;
 
-int llread(int fd, unsigned char* buffer) {
+unsigned char *  llread(int fd, unsigned char* buffer, unsigned int* length) {
 
 	stateMachineRead(fd);
 
 	printf("passou state\n");
-	
+
 	unsigned int i = 0;
 	while(read(fd, &buffer[i], 1)) {
 		if(buffer[i] == FLAG)
@@ -18,24 +18,42 @@ int llread(int fd, unsigned char* buffer) {
 
 	 if(i < 2){
 	 	printf("Error: no data in package!");
-	 	return -1;
+	 	return NULL;
 	 }
-	unsigned int length = i - 1;
-	
+	*length = i - 1;
+
 	//print buffer
 	//for(i =0; i<length; i++)
     	//printf("buffer no DESTUFF: %x\n",buffer[i]);
+			//
+			// printf("byteDestuffingFunction: \n");
+			// for(i =0; i<*length; i++)
+			// 	printf("buffer no DESTUFF %d: %x\n",i,buffer[i]);
+			// printf("buffer: %d\n",*length);
 
-	unsigned char bcc_received = buffer[length];
+	buffer = byteDestuffing(buffer, length);
 
-	buffer = byteDestuffing(buffer, &length);
+	// printf("byteDestuffingFunction after: \n");
+	// for(i =0; i<*length; i++)
+	// 	printf("buffer DESTUFF %d: %x\n",i,buffer[i]);
+	// printf("buffer: %d\n",*length);
+	//
+	// printf("TAMANHO apos destuffing: %d \n",*length);
+
+	// for(i=1970; i < *length ; i++)
+	// 	printf("buff_end: %x\n", buffer[i]);
+	//
+	// 	printf("index bcc : %d\n",*length+1);
+
+
+	unsigned char bcc_received = buffer[*length];
 
 	//print buffer
-	for(i =0; i<length; i++)
-    	printf("buffer: %x\n",buffer[i]);
+	//for(i =0; i<length; i++)
+    //	printf("buffer: %x\n",buffer[i]);
 
 	unsigned char bcc = 0;
-	 for(i = 0; i < length; i++) {
+	 for(i = 0; i < *length; i++) {
 		bcc ^= buffer[i];
 	 }
 
@@ -44,25 +62,25 @@ int llread(int fd, unsigned char* buffer) {
 	 if(bcc == bcc_received){
 	 	if(duplicate_flag){
 			printf("data bcc ok! duplicate tho!\n");
-			if(sendHeader(C_RR(sequence_number_read))<0) return -1;
-			return -1;
+			if(sendHeader(C_RR(sequence_number_read))<0) return NULL;
+			return NULL;
 		}
 		printf("data bcc ok!\n");
-		if(sendHeader(C_RR(sequence_number_read))<0) return -1;
-		return length;
+		if(sendHeader(C_RR(sequence_number_read))<0) return NULL;
+		return buffer;
 	 }
 	 else {
 		if(duplicate_flag){
 			printf("data bcc not ok! duplicate tho!\n");
-			if(sendHeader(C_RR(sequence_number_read))<0) return -1;
-			return -1;
+			if(sendHeader(C_RR(sequence_number_read))<0) return NULL;
+			return NULL;
 		}
 		printf("data bcc not ok!\n");
-		if(sendHeader(C_REJ(sequence_number_read))<0) return -1;
-		return length;
+		if(sendHeader(C_REJ(sequence_number_read))<0) return NULL;
+		return NULL;
 	 }
-	
-	return 0;
+
+	return buffer;
 }
 
 unsigned char* byteDestuffing(unsigned char* buffer,unsigned int* length){
@@ -72,7 +90,7 @@ unsigned char* byteDestuffing(unsigned char* buffer,unsigned int* length){
 
 	//buff[0] = buffer[0];
 
-	for(i = 0; i<(*length)-1; i++, j++){
+	for(i = 0; i<(*length); i++, j++){
 		if(buffer[i] == 0x7D){
 			i++;
 			if(buffer[i]==0x5E){
@@ -88,29 +106,32 @@ unsigned char* byteDestuffing(unsigned char* buffer,unsigned int* length){
 		}
 	}
 
-	buff[j] = buffer[(*length)-1];
+	buff[j] = buffer[(*length)];
 
-/*
-	printf("byteDestuffingFunction: \n");
-	for(i =0; i<length; i++)
-		printf("buffer: %x\n",buffer[i]);
+
+	/*printf("byteDestuffingFunction: \n");
+	for(i =0; i<(*length); i++)
+		printf("buffer %d: %x\n",i,buffer[i]);
+	printf("buffer: %d\n",*length);
 
 	for(i =0; i<new_length; i++)
-		printf("buff: %x\n",buff[i]);*/
+		printf("buff %d: %x\n",i,buff[i]);
+	printf("buffer new: %d\n",new_length);*/
+
 	*length = new_length;
 
 	return buff;
 }
 
 int stateMachineRead(int fd) {
-	
+
 	unsigned char received, received_A, received_C;
 	int state = 0;
-	
+
 	while(state != 4) {
 		read(fd, &received, 1);
 		printf("state %d : 0x%x\n", state, received);
-		
+
 		switch(state) {
 		      case 0:
 		      if(received == FLAG) state = 1;
@@ -126,7 +147,7 @@ int stateMachineRead(int fd) {
 		      break;
 
 		      case 2:
-			if(received == C_INFO(0) || received == C_INFO(1)) {			
+			if(received == C_INFO(0) || received == C_INFO(1)) {
 		      	state = 3;
 			received_C = received;}
 		      else if (received == FLAG) state = 1;
@@ -144,7 +165,7 @@ int stateMachineRead(int fd) {
 		printf("package duplicado com : %x\n", received_C);
 		duplicate_flag = TRUE;}
 	else{
-		
+
 		if(sequence_number_read == 0){
 			sequence_number_read = 1;}
 		else{

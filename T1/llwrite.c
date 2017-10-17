@@ -4,49 +4,47 @@ unsigned char sucessLastPackage = FALSE;
 
 int llwrite(int fd, unsigned char* buffer, int length){
 
-int n_chars = 0;
+  int n_chars = 0;
 
-while(!sucessLastPackage){
+  while(!sucessLastPackage){
 
-  int numberArgs = length;
-  unsigned char* trama = dataPackaging(buffer, numberArgs);
+    int numberArgs = length;
+    //unsigned char* trama = dataPackaging(buffer, numberArgs);
 
-  numberArgs += PACKING_HEADER_SIZE;
-  unsigned char* pack =  createHeader(C_INFO(sequenceNumber));
+    numberArgs += PACKING_HEADER_SIZE;
+    unsigned char* pack =  createHeader(C_INFO(sequenceNumber));
 
-  unsigned char* tail = createTail(trama, numberArgs);
+    unsigned char* tail = createTail(buffer, numberArgs);
 
-unsigned int i;
-pack = realloc(pack,numberArgs + INFO_HEADER_SIZE);
-for(i=0; i < numberArgs; i++)
-    pack[INFO_HEADER_SIZE+i] = trama[i];
-numberArgs += INFO_HEADER_SIZE;
-free(trama);
+    unsigned int i;
+    pack = realloc(pack,numberArgs + INFO_HEADER_SIZE);
+    for(i=0; i < numberArgs; i++)
+        pack[INFO_HEADER_SIZE+i] = buffer[i];
+    numberArgs += INFO_HEADER_SIZE;
 
+    pack = realloc(pack,numberArgs + INFO_TAIL_SIZE);
+    for(i=0; i < INFO_TAIL_SIZE; i++)
+        pack[numberArgs+i] = tail[i];
+    numberArgs += INFO_TAIL_SIZE;
+    free(tail);
 
-pack = realloc(pack,numberArgs + INFO_TAIL_SIZE);
-for(i=0; i < INFO_TAIL_SIZE; i++)
-    pack[numberArgs+i] = tail[i];
-numberArgs += INFO_TAIL_SIZE;
-free(tail);
-
-pack = byteStuffing(pack, &numberArgs);
+    pack = byteStuffing(pack, &numberArgs);
 
 
-//Pack to send:
-for(i =0; i<numberArgs; i++)
-    printf("pack: %x\n",pack[i]);
+    //Pack to send:
+    for(i =0; i<numberArgs; i++)
+        printf("pack: %x\n",pack[i]);
 
-	n_chars = sendMessage(fd, pack, numberArgs);
-	if(n_chars < 0){
-		return -1;
-	}
-	
-	stateMachineReadAnswer(fd);
-	 printf("passou state machine\n");
-}
-sucessLastPackage = FALSE;
-	return n_chars;
+    	n_chars = sendMessage(fd, pack, numberArgs);
+    	if(n_chars < 0){
+    		return -1;
+    	}
+
+    	stateMachineReadAnswer(fd);
+    	 printf("passou state machine\n");
+    }
+    sucessLastPackage = FALSE;
+    	return n_chars;
 
 }
 
@@ -82,10 +80,10 @@ unsigned char* createTail(unsigned char* buffer, int length){
 
 unsigned char* dataPackaging(unsigned char* buffer, int length){
 	unsigned char* header = malloc(PACKING_HEADER_SIZE+length);
-	header[0] = 0x01; //  Verificar estes
+	header[0] = C_DATA; //  Verificar estes
 	header[1] = 0x01; //  dois valores
-	header[2] = (length / 256); //  Verificar estes
-	header[3] = (length % 256); //  dois valores
+	header[2] = (length / 256);
+	header[3] = (length % 256);
 
 	unsigned int i;
 	for(i=0;i<length;i++){
@@ -142,13 +140,11 @@ unsigned char* byteStuffing(unsigned char* buffer, int* length) {
 	return buff;
 }
 
+unsigned char* controlPacking(unsigned char c, unsigned int fileSize,
+	char* name, unsigned char nameSize,unsigned int* length){
 
-
-unsigned char* controlPacking(unsigned char c, unsigned int fileSize, 
-	char* name, unsigned char nameSize){
-
-	unsigned int length = 5*sizeof(char)+sizeof(int)+nameSize;
-	unsigned char* buff = malloc(length);
+	(*length) = 5*sizeof(char)+sizeof(int)+nameSize;
+	unsigned char* buff = malloc(*length);
 
 	buff[0] = c;
 	buff[1] = 0x00;
@@ -156,14 +152,14 @@ unsigned char* controlPacking(unsigned char c, unsigned int fileSize,
 
 	unsigned int* int_location = (unsigned int *)(&buff[3]);
 	*int_location = fileSize;
-	
+
 	buff[7]=0x01;
 	buff[8]=nameSize;
 
 	unsigned int i;
 	for(i = 0; i < nameSize; i++)
     	buff[9+i] = name[i];
-    
+
 	for(i =0; i<9+nameSize; i++)
     	printf("buff: %x\n",buff[i]);
 
@@ -171,17 +167,17 @@ unsigned char* controlPacking(unsigned char c, unsigned int fileSize,
 }
 
 int stateMachineReadAnswer(int fd) {
-	
+
 	unsigned char received, received_A, received_C;
 	int state = 0;
 
 	printf("state machine\n");
-	
+
 	while(state != 5) {
 		printf("STATE MACHINE!!!!!!!");
 		read(fd, &received, 1);
 		printf("state %d : 0x%x\n", state, received);
-		
+
 		switch(state) {
       case 0:
       if(received == FLAG) state = 1;
@@ -195,7 +191,7 @@ int stateMachineReadAnswer(int fd) {
       else state = 0;
       break;
       case 2:
-      if(received == C_RR(1) || received == C_RR(0) || 
+      if(received == C_RR(1) || received == C_RR(0) ||
       	received == C_REJ(1) || received == C_REJ(0)) {
         state = 3;
         received_C = received;
@@ -213,7 +209,7 @@ int stateMachineReadAnswer(int fd) {
       break;
     }
 	}
-  
+
   verifyConditions(received_C);
 
   alarm(0);
