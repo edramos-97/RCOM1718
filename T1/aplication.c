@@ -71,12 +71,14 @@ int main(int argc, char** argv) {
 
 		if(rest > 0) {
 		dataBuff = dataPackaging(buffer+MAX_SIZE*index, rest);
-		for(j=0; j < rest+PACKING_HEADER_SIZE; j++)
-			printf("Data pack: %x\n", dataBuff[j]);
+		// for(j=0; j < rest+PACKING_HEADER_SIZE; j++)
+		// 	printf("Data pack: %x\n", dataBuff[j]);
+		printf("Gonna try to write the rest\n");
+		llwrite(fd,dataBuff,rest+PACKING_HEADER_SIZE);
 	}
 
 		controlBuff = controlPacking(C_END,fileSize,argv[3],strlen(argv[3]),&length);
-		//llwrite(fd,controlBuff,length);
+		llwrite(fd,controlBuff,length);
 		// for(j=0; j < length; j++)
 		// 	printf("End pack hex: %x\n", controlBuff[j]);
 		// for(j=0; j < length; j++)
@@ -149,7 +151,7 @@ int main(int argc, char** argv) {
       //unsigned char* buff = malloc(12000);
 			//unsigned char* buffer[MAX_SIZE+PACKING_HEADER_SIZE];
 
-      FILE * output = fopen(fileName,"wb");
+      FILE * output = fopen("output.jpeg","wb");
       if(output == NULL) perror("output error");
 
 			/*printf("byteDestuffingFunction after: \n");

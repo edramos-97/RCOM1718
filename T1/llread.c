@@ -96,8 +96,6 @@ unsigned char *  llread(int fd, unsigned char* buffer, unsigned int* length) {
 unsigned char* byteDestuffing(unsigned char* buffer,unsigned int* length){
 	printf("Gonna malloc the buff\n");
 	unsigned char* buff = malloc(*length);
-	if (buff == NULL)
-		printf("Malloc Error\n");
 	printf("buff malloc'd\n");
 	unsigned int new_length = *length;
 	unsigned int i, j=0;
