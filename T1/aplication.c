@@ -116,9 +116,10 @@ int main(int argc, char** argv) {
 			printf("blocks : %d\n",blocks);
 
 			unsigned int dataBuffLength = MAX_SIZE + PACKING_HEADER_SIZE;
-			unsigned char* dataBuff = malloc(dataBuffLength);
+			unsigned char* dataBuff;
 
 			for (index = 0; index <= blocks; index++) {
+				dataBuff = malloc(dataBuffLength);
 				printf("Gonna try to read the block no: %d\n", index + 1);
 				dataBuff = llread(fd,dataBuff,&dataBuffLength);
 
@@ -165,11 +166,11 @@ int main(int argc, char** argv) {
       //while((length=llread(fd,buff))>=0){
       printf("entar while\n");
       //  if(length<0)continue;
-      fwrite(buff,sizeof(char),*fileSize,output);
+      fwrite(buff,sizeof(unsigned char),*fileSize,output);
       printf("acaba while\n");
       //}
 
-      fclose(output);
+      //fclose(output); //Isto crasha o programa
     }
 
   /*********
@@ -206,6 +207,7 @@ unsigned int* var = 12158786;
 unsigned char* name = "ababababababc";
   controlPacking(0x02, 12158786, name, 13);
 */
+		printf("Gonna exit\n");
 
     return 0;
   }

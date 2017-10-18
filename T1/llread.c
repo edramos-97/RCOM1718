@@ -94,6 +94,8 @@ unsigned char *  llread(int fd, unsigned char* buffer, unsigned int* length) {
 }
 
 unsigned char* byteDestuffing(unsigned char* buffer,unsigned int* length){
+	printf("Length: %d", *length);
+	printf("Buffer: %d", buffer == NULL);
 	printf("Gonna malloc the buff\n");
 	unsigned char* buff = malloc(*length);
 	printf("buff malloc'd\n");
@@ -133,6 +135,8 @@ unsigned char* byteDestuffing(unsigned char* buffer,unsigned int* length){
 	*length = new_length;
 
 	printf("Length is: %d\n", *length);
+
+	//buff = realloc(buff, *length);
 
 	return buff;
 }

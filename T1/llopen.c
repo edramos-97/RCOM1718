@@ -71,7 +71,7 @@ printf("New termios structure set\n");
 
   } else {   // Transmiter
 
-  	
+
   	SET[0] = FLAG;
    SET[1] = A;
    SET[2] = C_SET;
@@ -91,14 +91,14 @@ return 0;
 }
 
 int stateMachine(int fd, unsigned char message) {
-	
+
 	unsigned char received, received_A, received_C;
 	int state = 0;
-	
+
 	while(state != 5) {
 		read(fd, &received, 1);
 		printf("state %d : 0x%x\n", state, received);
-		
+
 		switch(state) {
       case 0:
       if(received == FLAG) state = 1;
