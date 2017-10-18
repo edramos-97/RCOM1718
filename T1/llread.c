@@ -5,16 +5,20 @@ char sequence_number_read = 0;
 
 unsigned char *  llread(int fd, unsigned char* buffer, unsigned int* length) {
 
+	while(1){
 	stateMachineRead(fd);
 
 	printf("passou state\n");
 
 	unsigned int i = 0;
 	while(read(fd, &buffer[i], 1)) {
+		// printf("Buffer[%d]: %x\n", i, buffer[i]);
 		if(buffer[i] == FLAG)
 			break;
 		i++;
 	}
+
+	printf("Sai do read...\n");
 
 	 if(i < 2){
 	 	printf("Error: no data in package!");
@@ -31,7 +35,10 @@ unsigned char *  llread(int fd, unsigned char* buffer, unsigned int* length) {
 			// 	printf("buffer no DESTUFF %d: %x\n",i,buffer[i]);
 			// printf("buffer: %d\n",*length);
 
+
 	buffer = byteDestuffing(buffer, length);
+
+	printf("Buffer destuffed\n");
 
 	// printf("byteDestuffingFunction after: \n");
 	// for(i =0; i<*length; i++)
@@ -62,30 +69,37 @@ unsigned char *  llread(int fd, unsigned char* buffer, unsigned int* length) {
 	 if(bcc == bcc_received){
 	 	if(duplicate_flag){
 			printf("data bcc ok! duplicate tho!\n");
-			if(sendHeader(C_RR(sequence_number_read))<0) return NULL;
-			return NULL;
+			if(sendHeader(C_RR(sequence_number_read))<0)
+				return NULL;
+		} else {
+			printf("data bcc ok!\n");
+			if(sendHeader(C_RR(sequence_number_read))<0)
+				return NULL;
+			return buffer;
 		}
-		printf("data bcc ok!\n");
-		if(sendHeader(C_RR(sequence_number_read))<0) return NULL;
-		return buffer;
 	 }
 	 else {
 		if(duplicate_flag){
 			printf("data bcc not ok! duplicate tho!\n");
-			if(sendHeader(C_RR(sequence_number_read))<0) return NULL;
-			return NULL;
+			if(sendHeader(C_RR(sequence_number_read))<0)
+				return NULL;
+		} else {
+			printf("data bcc not ok!\n");
+			if(sendHeader(C_REJ(sequence_number_read))<0)
+				return NULL;
 		}
-		printf("data bcc not ok!\n");
-		if(sendHeader(C_REJ(sequence_number_read))<0) return NULL;
-		return NULL;
 	 }
-
-	return buffer;
+ }
+ return buffer;
 }
 
 unsigned char* byteDestuffing(unsigned char* buffer,unsigned int* length){
+	printf("Gonna malloc the buff\n");
 	unsigned char* buff = malloc(*length);
-	int new_length = *length;
+	if (buff == NULL)
+		printf("Malloc Error\n");
+	printf("buff malloc'd\n");
+	unsigned int new_length = *length;
 	unsigned int i, j=0;
 
 	//buff[0] = buffer[0];
@@ -119,6 +133,8 @@ unsigned char* byteDestuffing(unsigned char* buffer,unsigned int* length){
 	printf("buffer new: %d\n",new_length);*/
 
 	*length = new_length;
+
+	printf("Length is: %d\n", *length);
 
 	return buff;
 }
@@ -182,9 +198,9 @@ int sendHeader(unsigned char c){
 	buff[4] = FLAG;
 	if(write(fd,buff,5)!= 5){
 		perror("sendHeader went wrong");
-		free(buff);
+		// free(buff);
 		return -1;}
 	printf("sent header with %x\n", c);
-	free(buff);
+	// free(buff);
 	return 0;
 }

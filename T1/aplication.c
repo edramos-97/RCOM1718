@@ -60,9 +60,11 @@ int main(int argc, char** argv) {
 		for (index = 0; index < blocks; index++) {
 			dataBuff = dataPackaging(buffer+(MAX_SIZE*index), MAX_SIZE);
 
-			for(j=0; j < MAX_SIZE+PACKING_HEADER_SIZE; j++)
-	      printf("Data pack: %x\n", dataBuff[j]);
-				printf("END FOR\n");
+			// for(j=0; j < MAX_SIZE+PACKING_HEADER_SIZE; j++)
+	    //   printf("Data pack: %x\n", dataBuff[j]);
+			// 	printf("END FOR\n");
+
+			printf("Gonna try to write the block no: %d\n", index + 1);
 			llwrite(fd,dataBuff,MAX_SIZE+PACKING_HEADER_SIZE);
 			free(dataBuff);
 		}
@@ -113,25 +115,27 @@ int main(int argc, char** argv) {
 
 			unsigned int dataBuffLength = MAX_SIZE + PACKING_HEADER_SIZE;
 			unsigned char* dataBuff = malloc(dataBuffLength);
-			for (index = 0; index <= blocks; index++) {
 
+			for (index = 0; index <= blocks; index++) {
+				printf("Gonna try to read the block no: %d\n", index + 1);
 				dataBuff = llread(fd,dataBuff,&dataBuffLength);
 
-				for(j=0; j < dataBuffLength; j++)
-					printf("Data pack: %x\n", dataBuff[j]);
-				printf("END FOR\n");
+				if (dataBuff == NULL){
+
+					free(dataBuff);
+					continue;
+				}
+
+				// for(j=0; j < dataBuffLength; j++)
+				// 	printf("Data pack: %x\n", dataBuff[j]);
+				// printf("END FOR\n");
 
 				if (dataBuff[0] != 0x00 && dataBuff[0]!=C_END ){
 					printf("Packet read after START did not contain data END nor DATA identifier\n");
 				}
 
-				if (dataBuff == NULL){
-					free(dataBuff);
-					continue;
-				}
-
 				length = dataBuff[3] + dataBuff[2]*256;
-				printf("Block length: %d", length);
+				printf("Block length: %d\n", length);
 
 				unsigned int i;
 				for (i = 0; i < length; i++) {

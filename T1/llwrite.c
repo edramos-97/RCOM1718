@@ -32,13 +32,15 @@ int llwrite(int fd, unsigned char* buffer, int length){
 
 
     //Pack to send:
-    for(i =0; i<numberArgs; i++)
-        printf("pack: %x\n",pack[i]);
+    // for(i =0; i<numberArgs; i++)
+    //     printf("pack: %x\n",pack[i]);
 
     	n_chars = sendMessage(fd, pack, numberArgs);
     	if(n_chars < 0){
     		return -1;
     	}
+
+      printf("Block has been sent, awaiting response\n");
 
     	stateMachineReadAnswer(fd);
     	 printf("passou state machine\n");
@@ -160,8 +162,8 @@ unsigned char* controlPacking(unsigned char c, unsigned int fileSize,
 	for(i = 0; i < nameSize; i++)
     	buff[9+i] = name[i];
 
-	for(i =0; i<9+nameSize; i++)
-    	printf("buff: %x\n",buff[i]);
+	// for(i =0; i<9+nameSize; i++)
+  //   	printf("buff: %x\n",buff[i]);
 
     return buff;
 }
