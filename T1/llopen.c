@@ -95,9 +95,11 @@ int stateMachine(int fd, unsigned char message) {
 	unsigned char received, received_A, received_C;
 	int state = 0;
 
+  printf("Sending Open");
+
 	while(state != 5) {
 		read(fd, &received, 1);
-		printf("state %d : 0x%x\n", state, received);
+		printf(".");
 
 		switch(state) {
       case 0:

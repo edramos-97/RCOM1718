@@ -47,8 +47,6 @@ int llwrite(int fd, unsigned char* buffer, int length){
 
   } while(!sucessLastPackage);
 
-  printf(" Sent\n");
-
   return n_chars;
 
 }
@@ -220,30 +218,32 @@ unsigned char* controlPacking(unsigned char c, unsigned int fileSize,
 
   void verifyConditions(unsigned char received_C) {
     if(received_C == C_RR(0)){
-      printf("RR = 0\n");
       if(sequenceNumber == 1){
+        printf(" Sent\n");
         sequenceNumber = 0;
         sucessLastPackage = TRUE;
       } else {
+        printf(" Duplicate\n");
         sucessLastPackage = FALSE;
       }
     }
     else if(received_C == C_RR(1)){
-      printf("RR = 1\n");
       if(sequenceNumber == 0){
+        printf(" Sent\n");
         sequenceNumber = 1;
         sucessLastPackage = TRUE;
       } else {
+        printf(" Duplicate\n");
         sucessLastPackage = FALSE;
       }
     }
     else if(received_C == C_REJ(0)){
-      printf("RJ = 0\n");
+      printf(" Rejected\nResending");
       sequenceNumber = 0;
       sucessLastPackage = FALSE;
     }
     else if(received_C == C_REJ(1)){
-      printf("RJ = 1\n");
+      printf(" Rejected\nResending");
       sequenceNumber = 1;
       sucessLastPackage = FALSE;
     }

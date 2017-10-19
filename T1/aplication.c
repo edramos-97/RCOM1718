@@ -54,7 +54,7 @@ int main(int argc, char** argv) {
 		unsigned int blocks = fileSize / MAX_SIZE;
 		unsigned int rest = fileSize % MAX_SIZE;
 		unsigned int total = blocks*MAX_SIZE+rest;
-		printf("blocks : %d; rest: %d; toltal: %d\n",blocks,rest,total);
+		printf("Sending %d bytes over %d packages of %d bytes and 1 package of %d bytes\n",total,blocks,MAX_SIZE,rest);
 
 		unsigned char * dataBuff;
 		for (index = 0; index < blocks; index++) {
@@ -64,7 +64,7 @@ int main(int argc, char** argv) {
 	    //   printf("Data pack: %x\n", dataBuff[j]);
 			// 	printf("END FOR\n");
 
-			printf("Gonna try to write the block no: %d\n", index + 1);
+			printf("Sending package # %d", index + 1);
 			llwrite(fd,dataBuff,MAX_SIZE+PACKING_HEADER_SIZE);
 			free(dataBuff);
 		}
@@ -73,11 +73,12 @@ int main(int argc, char** argv) {
 		dataBuff = dataPackaging(buffer+MAX_SIZE*index, rest);
 		// for(j=0; j < rest+PACKING_HEADER_SIZE; j++)
 		// 	printf("Data pack: %x\n", dataBuff[j]);
-		printf("Gonna try to write the rest\n");
+		printf("Sending package no %d", index + 1);
 		llwrite(fd,dataBuff,rest+PACKING_HEADER_SIZE);
 	}
 
 		controlBuff = controlPacking(C_END,fileSize,argv[3],strlen(argv[3]),&length);
+		printf("Sending END");
 		llwrite(fd,controlBuff,length);
 		// for(j=0; j < length; j++)
 		// 	printf("End pack hex: %x\n", controlBuff[j]);
