@@ -130,5 +130,7 @@ int stateMachine(int fd, unsigned char message) {
     }
   }
 
+	alarm(0);
+
   return 0;
 }

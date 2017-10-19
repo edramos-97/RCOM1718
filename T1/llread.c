@@ -4,11 +4,11 @@ char duplicate_flag = FALSE;
 char sequence_number_read = 0;
 
 unsigned char *  llread(int fd, unsigned char* buffer, unsigned int* length) {
-
 	while(1){
-	stateMachineRead(fd);
 
-	printf("passou state\n");
+		//printf("Esperando por link layer header\n");
+		stateMachineRead(fd);
+		printf("Recebeu link layer Header\n");
 
 	unsigned int i = 0;
 	while(read(fd, &buffer[i], 1)) {
@@ -17,8 +17,6 @@ unsigned char *  llread(int fd, unsigned char* buffer, unsigned int* length) {
 			break;
 		i++;
 	}
-
-	printf("Sai do read...\n");
 
 	 if(i < 2){
 	 	printf("Error: no data in package!");
@@ -38,7 +36,7 @@ unsigned char *  llread(int fd, unsigned char* buffer, unsigned int* length) {
 
 	buffer = byteDestuffing(buffer, length);
 
-	printf("Buffer destuffed\n");
+	//printf("Buffer destuffed\n");
 
 	// printf("byteDestuffingFunction after: \n");
 	// for(i =0; i<*length; i++)
@@ -64,7 +62,7 @@ unsigned char *  llread(int fd, unsigned char* buffer, unsigned int* length) {
 		bcc ^= buffer[i];
 	 }
 
-	printf("bcc = %x\n", bcc_received);
+	//printf("bcc = %x\n", bcc_received);
 
 	 if(bcc == bcc_received){
 	 	if(duplicate_flag){
@@ -94,11 +92,11 @@ unsigned char *  llread(int fd, unsigned char* buffer, unsigned int* length) {
 }
 
 unsigned char* byteDestuffing(unsigned char* buffer,unsigned int* length){
-	printf("Length: %d", *length);
-	printf("Buffer: %d", buffer == NULL);
-	printf("Gonna malloc the buff\n");
+	//printf("Length: %d", *length);
+	//printf("Buffer: %d", buffer == NULL);
+	//printf("Gonna malloc the buff\n");
 	unsigned char* buff = malloc(*length);
-	printf("buff malloc'd\n");
+	//printf("buff malloc'd\n");
 	unsigned int new_length = *length;
 	unsigned int i, j=0;
 
@@ -134,7 +132,7 @@ unsigned char* byteDestuffing(unsigned char* buffer,unsigned int* length){
 
 	*length = new_length;
 
-	printf("Length is: %d\n", *length);
+	//printf("Length is: %d\n", *length);
 
 	//buff = realloc(buff, *length);
 
@@ -148,7 +146,7 @@ int stateMachineRead(int fd) {
 
 	while(state != 4) {
 		read(fd, &received, 1);
-		printf("state %d : 0x%x\n", state, received);
+		//printf("state %d : 0x%x\n", state, received);
 
 		switch(state) {
 		      case 0:
@@ -204,5 +202,6 @@ int sendHeader(unsigned char c){
 		return -1;}
 	printf("sent header with %x\n", c);
 	// free(buff);
+	alarm(0);
 	return 0;
 }

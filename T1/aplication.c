@@ -152,7 +152,7 @@ int main(int argc, char** argv) {
       //unsigned char* buff = malloc(12000);
 			//unsigned char* buffer[MAX_SIZE+PACKING_HEADER_SIZE];
 
-      FILE * output = fopen("output.jpeg","wb");
+      FILE * output = fopen("output.gif","wb");
       if(output == NULL) perror("output error");
 
 			/*printf("byteDestuffingFunction after: \n");
