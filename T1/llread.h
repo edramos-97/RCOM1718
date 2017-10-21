@@ -9,6 +9,8 @@ int stateMachineRead(int fd);
 int sendHeader(unsigned char c);
 unsigned char* llread(int fd, unsigned char* buffer,unsigned int* length);
 char* readControllPacket(unsigned char* controlBuff,char controll, unsigned int * filesize);
+char switch_sequence_number(char previous_num);
+
 
 
 

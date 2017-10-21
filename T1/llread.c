@@ -29,10 +29,10 @@ unsigned char *  llread(int fd, unsigned char* buffer, unsigned int* length) {
 
 	// *length = i - 1;
 	// printf("OLD LENGTH: %d\n",*length);
-	printf("NEW LENGTH: %d\n",new_length);
+	//printf("NEW LENGTH: %d\n",new_length);
 
-	for(i =80; i<new_length; i++)
-	printf("IMPORTANT: %x\n",buffer[i]);
+	// for(i =80; i<new_length; i++)
+	// printf("IMPORTANT: %x\n",buffer[i]);
 
 	//print buffer
 	//for(i =0; i<length; i++)
@@ -75,30 +75,22 @@ unsigned char *  llread(int fd, unsigned char* buffer, unsigned int* length) {
 
 	printf("bcc expected= %x; bcc received= %x\n",bcc , bcc_received);
 
-	 if(bcc == bcc_received){
-	 	if(duplicate_flag){
-			printf("data bcc ok! duplicate tho!\n");
-			if(sendHeader(C_RR(sequence_number_read))<0)
-				return NULL;
-		} else {
-			printf("data bcc ok!\n");
-			if(sendHeader(C_RR(sequence_number_read))<0)
-				return NULL;
-			return buffer;
-		}
-	 }
-	 else {
-		if(duplicate_flag){
-			printf("data bcc not ok! duplicate tho!\n");
-			if(sendHeader(C_RR(sequence_number_read))<0)
-				return NULL;
-		} else {
-			printf("data bcc not ok!\n");
-			if(sendHeader(C_REJ(sequence_number_read))<0)
-				return NULL;
-		}
-	 }
+	if(duplicate_flag){
+		printf("Duplicate Pack!\n");
+		if(sendHeader(C_RR(sequence_number_read))<0)
+			return NULL;
+	}else	if(bcc == bcc_received){
+		printf("Data bcc ok!\n");
+		sendHeader(C_RR(sequence_number_read));
+		return buffer;
+	}else{
+		printf("Data not bcc ok!\n");
+		sequence_number_read = switch_sequence_number(sequence_number_read);
+		sendHeader(C_REJ(sequence_number_read));
+		return NULL;
+	}
  }
+
  return buffer;
 }
 
@@ -189,17 +181,25 @@ int stateMachineRead(int fd) {
 		    }
 		  }
 
-	if(received_C != C_INFO(sequence_number_read)){
-		printf("package duplicado com : %x\n", received_C);
-		duplicate_flag = TRUE;}
-	else{
-
-		if(sequence_number_read == 0){
-			sequence_number_read = 1;}
-		else{
-			sequence_number_read = 0;}
-		duplicate_flag = FALSE;
+	if(received_C == C_INFO(1)){
+		if(sequence_number_read==0){duplicate_flag = TRUE;}
+		sequence_number_read = 0;
 	}
+	else if(received_C == C_INFO(0)){
+		if(sequence_number_read == 1){duplicate_flag = TRUE;}
+		sequence_number_read = 1;
+	}
+
+
+		// printf("package duplicado com : %x\n", received_C);
+		// duplicate_flag = TRUE;}
+		// else{
+		// 	if(sequence_number_read == 0){
+		// 		sequence_number_read = 1;}
+		// 	else{
+		// 		sequence_number_read = 0;}
+		// 	duplicate_flag = FALSE;
+		// }
 
   return 0;
 }
@@ -244,3 +244,14 @@ char* readControllPacket(unsigned char* controlBuff, char controll, unsigned int
 	return fileName;
 }
 
+
+char switch_sequence_number(char previous_num){
+	if(previous_num == 0){
+		return 1;
+	}
+	if (previous_num == 1) {
+		return 0;
+	}
+	printf("Sequence number is out of range\n");
+	return -1;
+}
