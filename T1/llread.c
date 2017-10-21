@@ -9,27 +9,31 @@ unsigned char *  llread(int fd, unsigned char* buffer, unsigned int* length) {
 		//printf("Esperando por link layer header\n");
 		stateMachineRead(fd);
 		printf("Recebeu link layer Header\n");
-
-	unsigned int new_length = 1;
+		unsigned int new_length = 1;
 	unsigned int i = 0;
 	while(read(fd, &buffer[i], 1)) {
 		// printf("Buffer[%d]: %x\n", i, buffer[i]);
 		if(buffer[i] == FLAG)
 			break;
-			new_length++;
-			buffer = realloc(buffer, new_length);
+		new_length++;
+		buffer = realloc(buffer,new_length);
 		i++;
 	}
+
 
 
 	 if(i < 2){
 	 	printf("Error: no data in package!");
 	 	return NULL;
 	 }
-	//*length = i - 1;
 
-	//for(i =80; i<(*length)+2; i++)
-	//printf("recieved: %x\n",buffer[i]);
+	// *length = i - 1;
+	// printf("OLD LENGTH: %d\n",*length);
+	printf("NEW LENGTH: %d\n",new_length);
+
+	for(i =80; i<new_length; i++)
+	printf("IMPORTANT: %x\n",buffer[i]);
+
 	//print buffer
 	//for(i =0; i<length; i++)
     	//printf("buffer no DESTUFF: %x\n",buffer[i]);
@@ -42,8 +46,8 @@ unsigned char *  llread(int fd, unsigned char* buffer, unsigned int* length) {
 
 	buffer = byteDestuffing(buffer, &new_length);
 
-	for(i =80; i<=(*length); i++)
-	printf("recieved: %x\n",buffer[i]);
+	// for(i =80; i<=(*length); i++)
+	// printf("recieved: %x\n",buffer[i]);
 	//printf("Buffer destuffed\n");
 
 	// printf("byteDestuffingFunction after: \n");
@@ -58,15 +62,14 @@ unsigned char *  llread(int fd, unsigned char* buffer, unsigned int* length) {
 	//
 	// 	printf("index bcc : %d\n",*length+1);
 
-
-	unsigned char bcc_received = buffer[*length];
+	unsigned char bcc_received = buffer[new_length-2];
 
 	//print buffer
-	for(i =80; i<=*length; i++)
-    	printf("buffer: %x\n",buffer[i]);
+	// for(i =80; i<=*length; i++)
+  //   	printf("buffer: %x\n",buffer[i]);
 
 	unsigned char bcc = 0;
-	 for(i = 0; i < *length; i++) {
+	 for(i = 0; i < new_length-2; i++) {
 		bcc ^= buffer[i];
 	 }
 
@@ -129,14 +132,15 @@ unsigned char* byteDestuffing(unsigned char* buffer,unsigned int* length){
 	buff[j] = buffer[(*length)];
 
 
-	printf("byteDestuffingFunction: \n");
-	for(i =80; i<=(*length); i++)
-		printf("buffer %d: %x\n",i,buffer[i]);
-	printf("buffer : %d\n",*length);
 
-	for(i =80; i<=new_length; i++)
-		printf("buff %d: %x\n",i,buff[i]);
-	printf("buffer new: %d\n",new_length);
+	//printf("byteDestuffingFunction: \n");
+	// for(i =80; i<=(*length); i++)
+	// 	printf("buffer %d: %x\n",i,buffer[i]);
+	// printf("buffer : %d\n",*length);
+	//
+	// for(i =80; i<=new_length; i++)
+	// 	printf("buff %d: %x\n",i,buff[i]);
+	// printf("buffer new: %d\n",new_length);
 
 	*length = new_length;
 
@@ -239,3 +243,4 @@ char* readControllPacket(unsigned char* controlBuff, char controll, unsigned int
 	*fileSize = *size;
 	return fileName;
 }
+
