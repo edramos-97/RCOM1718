@@ -5,23 +5,15 @@ unsigned char sucessLastPackage = FALSE;
 int llwrite(int fd, unsigned char* buffer, int length){
 
   int n_chars = 0;
-
-  //while(!sucessLastPackage){
+  
   do{
 
     int numberArgs = length;
 
-    //printf("numberArgs ENTARDA llwrite: %d\n",numberArgs);
-    //unsigned char* trama = dataPackaging(buffer, numberArgs);
-
-    //numberArgs += PACKING_HEADER_SIZE;
-    printf("sequence %d\n",sequenceNumber);
+    printf("\n\nsequence %d\n",sequenceNumber);
     unsigned char* pack =  createHeader(C_INFO(sequenceNumber));
 
-
     unsigned char* tail = createTail(buffer, numberArgs);
-
-    //printf("numberArgs ANTES DE REALLOC llwrite: %d\n",numberArgs);
 
     unsigned int i;
     pack = realloc(pack,numberArgs + INFO_HEADER_SIZE);
@@ -35,16 +27,7 @@ int llwrite(int fd, unsigned char* buffer, int length){
     numberArgs += INFO_TAIL_SIZE;
     free(tail);
 
-    //printf("numberArgs ANTES DE STUFFING llwrite: %d\n",numberArgs);
-
     pack = byteStuffing(pack, &numberArgs);
-
-    //printf("numberArgs DEPOIS DE STUFFING llwrite: %d\n",numberArgs);
-
-    //for(i =0; i<numberArgs; i++)
-        //printf("pack: %x\n",pack[i]);
-
-
 
     n_chars = sendMessage(fd, pack, numberArgs);
     if(n_chars < 0){
@@ -66,13 +49,6 @@ unsigned char* createHeader(char c){
   header[2] = c;
   header[3] = header[1] ^ header[2];
 
-  /*
-  printf("createHeaderFunction: \n");
-  unsigned int i;
-  for(i =0; i < 4; i++)
-  printf("header: %x\n", header[i]);
-  printf("\n \n");*/
-
   return header;
 }
 
@@ -81,12 +57,8 @@ unsigned char* createTail(unsigned char* buffer, int length){
   tail[0] = 0;
   unsigned int i;
 
-  for(i = 0; i < length; i++){
-  tail[0] ^= buffer[i];
-  //printf("tail[%x], length = %d \n", tail[0], i);
-}
-
-  //printf("->>>>>BCC: %x\n" , tail[0]);
+  for(i = 0; i < length; i++)
+    tail[0] ^= buffer[i];
 
   tail[1] = FLAG;
 
@@ -95,8 +67,8 @@ unsigned char* createTail(unsigned char* buffer, int length){
 
 unsigned char* dataPackaging(unsigned char* buffer, int length){
   unsigned char* header = malloc(PACKING_HEADER_SIZE+length);
-  header[0] = C_DATA; //  Verificar estes
-  header[1] = 0x01; //  dois valores
+  header[0] = C_DATA;
+  header[1] = 0x01;
   header[2] = (length / 256);
   header[3] = (length % 256);
 
@@ -104,11 +76,6 @@ unsigned char* dataPackaging(unsigned char* buffer, int length){
   for(i=0;i<length;i++){
     header[PACKING_HEADER_SIZE+i] = buffer[i];
   }
-
-  /*
-  printf("dataPackagingFunction: \n");
-  for(i =0; i < 4+length; i++)
-  printf("header: %x\n", header[i]);*/
 
   return header;
 }
@@ -134,21 +101,11 @@ unsigned char* byteStuffing(unsigned char* buffer, int* length) {
       j++;
       buff = realloc(buff,new_length);
       buff[j] = 0x5D;
-    } else{
+    } else
       buff[j] = buffer[i];
-    }
   }
 
   buff[j] = buffer[*length-1];
-
-  /*printf("bitStuffingFunction: \n");
-  printf("length nova : %d\n",new_length);
-  for(i =0; i<*length; i++)
-  printf("buffer: %x\n",buffer[i]);
-
-  for(i =0; i<new_length; i++)
-  printf("buff: %x\n",buff[i]);
-  printf("\n \n");*/
 
   *length = new_length;
   return buff;
@@ -173,9 +130,6 @@ unsigned char* controlPacking(unsigned char c, unsigned int fileSize,
     unsigned int i;
     for(i = 0; i < nameSize; i++)
     buff[9+i] = name[i];
-
-    // for(i =0; i<9+nameSize; i++)
-    //   	printf("buff: %x\n",buff[i]);
 
     return buff;
   }
