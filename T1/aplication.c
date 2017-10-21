@@ -87,7 +87,7 @@ int main(int argc, char** argv) {
 		// 	printf("End pack: %c\n", controlBuff[j]);
 		free(controlBuff);
 
-		if(disconnect()<0){
+		if(llclose(fd, TRANSMITTER)<0){
 			printf("Error to diconnected!\n");
 			return -1;
 		}
@@ -183,20 +183,12 @@ int main(int argc, char** argv) {
 
 		FILE * output = fopen("output.gif","wb");
 		if(output == NULL) perror("output error");
-
-		/*printf("byteDestuffingFunction after: \n");
-		for(i =0; i<length; i++)
-		printf("buffer FINAL %d: %x\n",i,buff[i]);
-		printf("buffer: %d\n",length);*/
-
-
-
-
-		//while((length=llread(fd,buff))>=0){
-		printf("entar while\n");
-		//  if(length<0)continue;
 		fwrite(buff,sizeof(unsigned char),fileSize,output);
-		printf("acaba while\n");
+
+		if(llclose(fd, RECEIVER)<0){
+			printf("Error to diconnected!\n");
+			return -1;
+		}
 		//}
 
 		//fclose(output); //Isto crasha o programa

@@ -5,7 +5,7 @@
 #include "utils.h"
 #include "llopen.h"
 
-int disconnect();
+int llclose(int fd, int type);
 
 unsigned char* supervisionPacking(unsigned char c);
 
