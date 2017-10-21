@@ -97,7 +97,7 @@ int main(int argc, char** argv) {
 	if(atoi(argv[2]) == RECEIVER){
 		llopen(argv[1],RECEIVER);
 
-		unsigned int length = MAX_SIZE;
+		unsigned int length = 1;
 
 		unsigned char* controlBuff = malloc(length);
 		controlBuff = llread(fd,controlBuff,&length);
@@ -137,7 +137,7 @@ int main(int argc, char** argv) {
 		unsigned int blocks = fileSize / MAX_SIZE;
 		printf("blocks : %d\n",blocks);
 
-		unsigned int dataBuffLength = MAX_SIZE + PACKING_HEADER_SIZE;
+		unsigned int dataBuffLength = 1;
 		unsigned char* dataBuff;
 
 		//for (index = 0; index <= blocks; index++) {

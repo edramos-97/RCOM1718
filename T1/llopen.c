@@ -72,7 +72,7 @@ printf("New termios structure set\n");
   } else {   // Transmiter
 
 
-  	SET[0] = FLAG;
+  SET[0] = FLAG;
    SET[1] = A;
    SET[2] = C_SET;
    SET[3] = SET[1] ^ SET[2];
@@ -95,11 +95,8 @@ int stateMachine(int fd, unsigned char message) {
 	unsigned char received, received_A, received_C;
 	int state = 0;
 
-  printf("Sending Open");
-
 	while(state != 5) {
 		read(fd, &received, 1);
-		printf(".");
 
 		switch(state) {
       case 0:

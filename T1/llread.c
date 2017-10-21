@@ -10,11 +10,14 @@ unsigned char *  llread(int fd, unsigned char* buffer, unsigned int* length) {
 		stateMachineRead(fd);
 		printf("Recebeu link layer Header\n");
 
+	unsigned int new_length = 1;
 	unsigned int i = 0;
 	while(read(fd, &buffer[i], 1)) {
 		// printf("Buffer[%d]: %x\n", i, buffer[i]);
 		if(buffer[i] == FLAG)
 			break;
+			new_length++;
+			buffer = realloc(buffer, new_length);
 		i++;
 	}
 
@@ -23,10 +26,10 @@ unsigned char *  llread(int fd, unsigned char* buffer, unsigned int* length) {
 	 	printf("Error: no data in package!");
 	 	return NULL;
 	 }
-	*length = i - 1;
+	//*length = i - 1;
 
-	for(i =80; i<(*length)+2; i++)
-	printf("recieved: %x\n",buffer[i]);
+	//for(i =80; i<(*length)+2; i++)
+	//printf("recieved: %x\n",buffer[i]);
 	//print buffer
 	//for(i =0; i<length; i++)
     	//printf("buffer no DESTUFF: %x\n",buffer[i]);
@@ -37,7 +40,7 @@ unsigned char *  llread(int fd, unsigned char* buffer, unsigned int* length) {
 			// printf("buffer: %d\n",*length);
 
 
-	buffer = byteDestuffing(buffer, length);
+	buffer = byteDestuffing(buffer, &new_length);
 
 	for(i =80; i<=(*length); i++)
 	printf("recieved: %x\n",buffer[i]);

@@ -10,12 +10,18 @@ int llwrite(int fd, unsigned char* buffer, int length){
   do{
 
     int numberArgs = length;
+
+    //printf("numberArgs ENTARDA llwrite: %d\n",numberArgs);
     //unsigned char* trama = dataPackaging(buffer, numberArgs);
 
     //numberArgs += PACKING_HEADER_SIZE;
+    printf("sequence %d\n",sequenceNumber);
     unsigned char* pack =  createHeader(C_INFO(sequenceNumber));
 
+
     unsigned char* tail = createTail(buffer, numberArgs);
+
+    //printf("numberArgs ANTES DE REALLOC llwrite: %d\n",numberArgs);
 
     unsigned int i;
     pack = realloc(pack,numberArgs + INFO_HEADER_SIZE);
@@ -29,12 +35,14 @@ int llwrite(int fd, unsigned char* buffer, int length){
     numberArgs += INFO_TAIL_SIZE;
     free(tail);
 
+    //printf("numberArgs ANTES DE STUFFING llwrite: %d\n",numberArgs);
+
     pack = byteStuffing(pack, &numberArgs);
 
+    //printf("numberArgs DEPOIS DE STUFFING llwrite: %d\n",numberArgs);
 
-    //Pack to send:
-    // for(i =0; i<numberArgs; i++)
-    //     printf("pack: %x\n",pack[i]);
+    //for(i =0; i<numberArgs; i++)
+        //printf("pack: %x\n",pack[i]);
 
 
 
@@ -73,8 +81,12 @@ unsigned char* createTail(unsigned char* buffer, int length){
   tail[0] = 0;
   unsigned int i;
 
-  for(i = 0; i < length; i++)
+  for(i = 0; i < length; i++){
   tail[0] ^= buffer[i];
+  //printf("tail[%x], length = %d \n", tail[0], i);
+}
+
+  //printf("->>>>>BCC: %x\n" , tail[0]);
 
   tail[1] = FLAG;
 

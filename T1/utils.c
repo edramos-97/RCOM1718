@@ -12,7 +12,7 @@ int flag_recebeu = 0;
 void writeTimeOut()
 {
   if(flag_recebeu == 0 && numberTries < 4){
-    printf("\nChamada # %d acabou", numberTries);
+    printf("\nChamada # %d acabou\n", numberTries);
     numberTries++;
     write(fd,lastPackage,lastPackageSize);
     alarm(3);
