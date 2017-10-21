@@ -1,10 +1,20 @@
 #ifndef _UTILS_H_
 #define _UTILS_H_
 
+// #include <sys/stat.h>
+// #include <stdio.h>
+// #include <unistd.h>
+// #include <stdlib.h>
+#include <sys/types.h>
 #include <sys/stat.h>
+#include <fcntl.h>
+#include <termios.h>
 #include <stdio.h>
-#include <unistd.h>
+#include <string.h>
 #include <stdlib.h>
+#include <unistd.h>
+#include <signal.h>
+
 
 #define BAUDRATE B38400
 #define MODEMDEVICE "/dev/ttyS1"
@@ -32,6 +42,7 @@
 #define A 			0x03
 #define C_SET 		0x03
 #define C_UA 		0x07
+#define C_DISC  0x0B
 
 #define C_INFO(x) (0b00000000 + ((x) << 6))
 #define C_RR(x) (0b00000101 + ((x) << 7))

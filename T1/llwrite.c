@@ -12,7 +12,7 @@ int llwrite(int fd, unsigned char* buffer, int length){
     int numberArgs = length;
     //unsigned char* trama = dataPackaging(buffer, numberArgs);
 
-    numberArgs += PACKING_HEADER_SIZE;
+    //numberArgs += PACKING_HEADER_SIZE;
     unsigned char* pack =  createHeader(C_INFO(sequenceNumber));
 
     unsigned char* tail = createTail(buffer, numberArgs);

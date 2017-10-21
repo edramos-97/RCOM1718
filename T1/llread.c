@@ -18,12 +18,15 @@ unsigned char *  llread(int fd, unsigned char* buffer, unsigned int* length) {
 		i++;
 	}
 
+
 	 if(i < 2){
 	 	printf("Error: no data in package!");
 	 	return NULL;
 	 }
 	*length = i - 1;
 
+	for(i =80; i<(*length)+2; i++)
+	printf("recieved: %x\n",buffer[i]);
 	//print buffer
 	//for(i =0; i<length; i++)
     	//printf("buffer no DESTUFF: %x\n",buffer[i]);
@@ -36,6 +39,8 @@ unsigned char *  llread(int fd, unsigned char* buffer, unsigned int* length) {
 
 	buffer = byteDestuffing(buffer, length);
 
+	for(i =80; i<=(*length); i++)
+	printf("recieved: %x\n",buffer[i]);
 	//printf("Buffer destuffed\n");
 
 	// printf("byteDestuffingFunction after: \n");
@@ -54,15 +59,15 @@ unsigned char *  llread(int fd, unsigned char* buffer, unsigned int* length) {
 	unsigned char bcc_received = buffer[*length];
 
 	//print buffer
-	//for(i =0; i<length; i++)
-    //	printf("buffer: %x\n",buffer[i]);
+	for(i =80; i<=*length; i++)
+    	printf("buffer: %x\n",buffer[i]);
 
 	unsigned char bcc = 0;
 	 for(i = 0; i < *length; i++) {
 		bcc ^= buffer[i];
 	 }
 
-	//printf("bcc = %x\n", bcc_received);
+	printf("bcc expected= %x; bcc received= %x\n",bcc , bcc_received);
 
 	 if(bcc == bcc_received){
 	 	if(duplicate_flag){
@@ -121,14 +126,14 @@ unsigned char* byteDestuffing(unsigned char* buffer,unsigned int* length){
 	buff[j] = buffer[(*length)];
 
 
-	/*printf("byteDestuffingFunction: \n");
-	for(i =0; i<(*length); i++)
+	printf("byteDestuffingFunction: \n");
+	for(i =80; i<=(*length); i++)
 		printf("buffer %d: %x\n",i,buffer[i]);
-	printf("buffer: %d\n",*length);
+	printf("buffer : %d\n",*length);
 
-	for(i =0; i<new_length; i++)
+	for(i =80; i<=new_length; i++)
 		printf("buff %d: %x\n",i,buff[i]);
-	printf("buffer new: %d\n",new_length);*/
+	printf("buffer new: %d\n",new_length);
 
 	*length = new_length;
 
@@ -193,15 +198,41 @@ int stateMachineRead(int fd) {
 }
 
 int sendHeader(unsigned char c){
-	unsigned char* buff = malloc(5);
+	unsigned char* buff = malloc(SUPERVISION_SIZE);
 	buff = createHeader(c);
 	buff[4] = FLAG;
 	if(write(fd,buff,5)!= 5){
 		perror("sendHeader went wrong");
 		// free(buff);
 		return -1;}
-	printf("sent header with %x\n", c);
+	printf("Sent response with %x\n", c);
 	// free(buff);
 	alarm(0);
 	return 0;
+}
+
+char* readControllPacket(unsigned char* controlBuff, char controll, unsigned int * fileSize){
+	char * fileName;
+	unsigned int * size;
+
+	//RECIEVE START CONTROLL BUFF
+	if(controlBuff[0]!=controll){
+		printf("Packet read  did not contain the expected identifier\n");
+		return NULL;
+	}
+	else if(controlBuff[1]==0x00){
+		size = (unsigned int*)(controlBuff+3);
+		fileName = malloc((unsigned int)controlBuff[8]+1);
+		memcpy(fileName,controlBuff+9,(unsigned int)controlBuff[8]);
+	}else if(controlBuff[1]==0x01){
+		fileName = malloc((unsigned int)controlBuff[2]+1);
+		memcpy(fileName,controlBuff+3,(unsigned int)controlBuff[2]);
+		fileSize = (unsigned int*)(controlBuff+(unsigned int)controlBuff[2]+2);
+	}else{
+		printf("Controll packet contained an unkown Type\n");
+		return NULL;
+	}
+
+	*fileSize = *size;
+	return fileName;
 }
