@@ -65,7 +65,7 @@ int main(int argc, char** argv) {
 			//   printf("Data pack: %x\n", dataBuff[j]);
 			// 	printf("END FOR\n");
 
-			printf("Sending package # %d", index + 1);
+			//printf("Sending package # %d", index + 1);
 			llwrite(fd,dataBuff,MAX_SIZE+PACKING_HEADER_SIZE);
 			free(dataBuff);
 		}
@@ -79,7 +79,7 @@ int main(int argc, char** argv) {
 		}
 
 		controlBuff = controlPacking(C_END,fileSize,argv[3],strlen(argv[3]),&length);
-		printf("Sending END");
+		printf("\nSending END\n");
 		llwrite(fd,controlBuff,length);
 		// for(j=0; j < length; j++)
 		// 	printf("End pack hex: %x\n", controlBuff[j]);
@@ -181,7 +181,7 @@ int main(int argc, char** argv) {
 		//unsigned char* buff = malloc(12000);
 		//unsigned char* buffer[MAX_SIZE+PACKING_HEADER_SIZE];
 
-		FILE * output = fopen("output.gif","wb");
+		FILE * output = fopen(fileName,"wb");
 		if(output == NULL) perror("output error");
 		fwrite(buff,sizeof(unsigned char),fileSize,output);
 
@@ -228,7 +228,7 @@ int main(int argc, char** argv) {
 	unsigned char* name = "ababababababc";
 	controlPacking(0x02, 12158786, name, 13);
 	*/
-	printf("Gonna exit\n");
+	printf("\nGonna exit\n\n");
 
 	return 0;
 }

@@ -1,16 +1,18 @@
 #include "llwrite.h"
 
 unsigned char sucessLastPackage = FALSE;
+unsigned int packageNumber = 0;
 
 int llwrite(int fd, unsigned char* buffer, int length){
 
   int n_chars = 0;
-  
+  printf("\n\nPackage number:  %d\n",packageNumber);
+
   do{
 
     int numberArgs = length;
 
-    printf("\n\nsequence %d\n",sequenceNumber);
+    printf("sequence %d\n",sequenceNumber);
     unsigned char* pack =  createHeader(C_INFO(sequenceNumber));
 
     unsigned char* tail = createTail(buffer, numberArgs);
@@ -68,7 +70,7 @@ unsigned char* createTail(unsigned char* buffer, int length){
 unsigned char* dataPackaging(unsigned char* buffer, int length){
   unsigned char* header = malloc(PACKING_HEADER_SIZE+length);
   header[0] = C_DATA;
-  header[1] = 0x01;
+  header[1] = packageNumber;
   header[2] = (length / 256);
   header[3] = (length % 256);
 
@@ -185,7 +187,7 @@ unsigned char* controlPacking(unsigned char c, unsigned int fileSize,
   void verifyConditions(unsigned char received_C) {
     if(received_C == C_RR(0)){
       if(sequenceNumber == 1){
-        printf(" Sent\n");
+        printf(" Sent\n\n");
         sequenceNumber = 0;
         sucessLastPackage = TRUE;
       } else {
@@ -213,4 +215,7 @@ unsigned char* controlPacking(unsigned char c, unsigned int fileSize,
       sequenceNumber = 1;
       sucessLastPackage = FALSE;
     }
+
+    if(sucessLastPackage)
+    packageNumber = (packageNumber+1) % 256;
   }
