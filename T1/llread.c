@@ -142,7 +142,7 @@ int sendHeader(unsigned char c){
 		perror("sendHeader went wrong");
 		return -1;
 	}
-	printf("Sent response with %x\n", c);
+	printf("Sent response with %x\n\n", c);
 
 	alarm(0);
 	return 0;

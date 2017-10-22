@@ -1,13 +1,3 @@
-// #include <sys/types.h>
-// #include <sys/stat.h>
-// #include <fcntl.h>
-// #include <termios.h>
-// #include <stdio.h>
-// #include <string.h>
-// #include <stdlib.h>
-// #include <unistd.h>
-// #include <signal.h>
-
 #include "sendMessage.h"
 #include "utils.h"
 #include "llwrite.h"
@@ -78,7 +68,7 @@ int main(int argc, char** argv) {
 		controlBuff = controlPacking(C_END,fileSize,argv[3],strlen(argv[3]),&length);
 		llwrite(fd,controlBuff,length);
 		free(controlBuff);
-		printf("\nSENT END PACKET SUCCESSFULLY\n");
+		printf("\nSENT END PACKET SUCCESSFULLY\n\n");
 
 		if(llclose(fd, TRANSMITTER)<0){
 			printf("Error to diconnected!\n");
@@ -128,7 +118,7 @@ int main(int argc, char** argv) {
 			}
 
 			if (dataBuff[0] == C_END) {
-				printf("recebeu end\n");
+				printf("Received END\n\n");
 				break;
 			}
 
@@ -148,7 +138,10 @@ int main(int argc, char** argv) {
 		}
 
 		FILE * output = fopen(fileName,"wb");
-		if(output == NULL) perror("output error");
+
+		if(output == NULL)
+			perror("output error");
+
 		fwrite(buff,sizeof(unsigned char),fileSize,output);
 
 		if(llclose(fd, RECEIVER)<0){
