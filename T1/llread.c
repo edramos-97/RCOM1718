@@ -4,15 +4,14 @@ char duplicate_flag = FALSE;
 char sequence_number_read = 0;
 
 unsigned char *  llread(int fd, unsigned char* buffer, unsigned int* length) {
-	while(1){
 
-		//printf("Esperando por link layer header\n");
+	while(1) {
+
 		stateMachineRead(fd);
 		printf("Recebeu link layer Header\n");
 		unsigned int new_length = 1;
 	unsigned int i = 0;
 	while(read(fd, &buffer[i], 1)) {
-		// printf("Buffer[%d]: %x\n", i, buffer[i]);
 		if(buffer[i] == FLAG)
 			break;
 		new_length++;
@@ -20,53 +19,14 @@ unsigned char *  llread(int fd, unsigned char* buffer, unsigned int* length) {
 		i++;
 	}
 
-
-
 	 if(i < 2){
 	 	printf("Error: no data in package!");
 	 	return NULL;
 	 }
 
-	// *length = i - 1;
-	// printf("OLD LENGTH: %d\n",*length);
-	//printf("NEW LENGTH: %d\n",new_length);
-
-	// for(i =80; i<new_length; i++)
-	// printf("IMPORTANT: %x\n",buffer[i]);
-
-	//print buffer
-	//for(i =0; i<length; i++)
-    	//printf("buffer no DESTUFF: %x\n",buffer[i]);
-			//
-			// printf("byteDestuffingFunction: \n");
-			// for(i =0; i<*length; i++)
-			// 	printf("buffer no DESTUFF %d: %x\n",i,buffer[i]);
-			// printf("buffer: %d\n",*length);
-
-
 	buffer = byteDestuffing(buffer, &new_length);
 
-	// for(i =80; i<=(*length); i++)
-	// printf("recieved: %x\n",buffer[i]);
-	//printf("Buffer destuffed\n");
-
-	// printf("byteDestuffingFunction after: \n");
-	// for(i =0; i<*length; i++)
-	// 	printf("buffer DESTUFF %d: %x\n",i,buffer[i]);
-	// printf("buffer: %d\n",*length);
-	//
-	// printf("TAMANHO apos destuffing: %d \n",*length);
-
-	// for(i=1970; i < *length ; i++)
-	// 	printf("buff_end: %x\n", buffer[i]);
-	//
-	// 	printf("index bcc : %d\n",*length+1);
-
 	unsigned char bcc_received = buffer[new_length-2];
-
-	//print buffer
-	// for(i =80; i<=*length; i++)
-  //   	printf("buffer: %x\n",buffer[i]);
 
 	unsigned char bcc = 0;
 	 for(i = 0; i < new_length-2; i++) {
@@ -75,17 +35,19 @@ unsigned char *  llread(int fd, unsigned char* buffer, unsigned int* length) {
 
 	printf("bcc expected= %x; bcc received= %x\n",bcc , bcc_received);
 
-	if(duplicate_flag){
+	if(duplicate_flag) {
 		printf("Duplicate Pack!\n");
 		if(sendHeader(C_RR(sequence_number_read))<0)
 			return NULL;
-	}else	if(bcc == bcc_received){
+	}
+	else	if(bcc == bcc_received) {
 		printf("Data bcc ok!\n");
 		sendHeader(C_RR(sequence_number_read));
 		return buffer;
-	}else{
+	}
+	else {
 		printf("Data not bcc ok!\n");
-		sequence_number_read = switch_sequence_number(sequence_number_read);
+		sequence_number_read = switchSequenceNumber(sequence_number_read);
 		sendHeader(C_REJ(sequence_number_read));
 		return NULL;
 	}
@@ -95,15 +57,9 @@ unsigned char *  llread(int fd, unsigned char* buffer, unsigned int* length) {
 }
 
 unsigned char* byteDestuffing(unsigned char* buffer,unsigned int* length){
-	//printf("Length: %d", *length);
-	//printf("Buffer: %d", buffer == NULL);
-	//printf("Gonna malloc the buff\n");
 	unsigned char* buff = malloc(*length);
-	//printf("buff malloc'd\n");
 	unsigned int new_length = *length;
 	unsigned int i, j=0;
-
-	//buff[0] = buffer[0];
 
 	for(i = 0; i<(*length); i++, j++){
 		if(buffer[i] == 0x7D){
@@ -123,22 +79,7 @@ unsigned char* byteDestuffing(unsigned char* buffer,unsigned int* length){
 
 	buff[j] = buffer[(*length)];
 
-
-
-	//printf("byteDestuffingFunction: \n");
-	// for(i =80; i<=(*length); i++)
-	// 	printf("buffer %d: %x\n",i,buffer[i]);
-	// printf("buffer : %d\n",*length);
-	//
-	// for(i =80; i<=new_length; i++)
-	// 	printf("buff %d: %x\n",i,buff[i]);
-	// printf("buffer new: %d\n",new_length);
-
 	*length = new_length;
-
-	//printf("Length is: %d\n", *length);
-
-	//buff = realloc(buff, *length);
 
 	return buff;
 }
@@ -150,7 +91,6 @@ int stateMachineRead(int fd) {
 
 	while(state != 4) {
 		read(fd, &received, 1);
-		//printf("state %d : 0x%x\n", state, received);
 
 		switch(state) {
 		      case 0:
@@ -190,17 +130,6 @@ int stateMachineRead(int fd) {
 		sequence_number_read = 1;
 	}
 
-
-		// printf("package duplicado com : %x\n", received_C);
-		// duplicate_flag = TRUE;}
-		// else{
-		// 	if(sequence_number_read == 0){
-		// 		sequence_number_read = 1;}
-		// 	else{
-		// 		sequence_number_read = 0;}
-		// 	duplicate_flag = FALSE;
-		// }
-
   return 0;
 }
 
@@ -208,12 +137,13 @@ int sendHeader(unsigned char c){
 	unsigned char* buff = malloc(SUPERVISION_SIZE);
 	buff = createHeader(c);
 	buff[4] = FLAG;
+
 	if(write(fd,buff,5)!= 5){
 		perror("sendHeader went wrong");
-		// free(buff);
-		return -1;}
+		return -1;
+	}
 	printf("Sent response with %x\n", c);
-	// free(buff);
+
 	alarm(0);
 	return 0;
 }
@@ -222,20 +152,25 @@ char* readControllPacket(unsigned char* controlBuff, char controll, unsigned int
 	char * fileName;
 	unsigned int * size;
 
-	//RECIEVE START CONTROLL BUFF
-	if(controlBuff[0]!=controll){
+	if(controlBuff[0]!=controll)
+	{
 		printf("Packet read  did not contain the expected identifier\n");
 		return NULL;
 	}
-	else if(controlBuff[1]==0x00){
+	else if(controlBuff[1]==0x00)
+	{
 		size = (unsigned int*)(controlBuff+3);
 		fileName = malloc((unsigned int)controlBuff[8]+1);
 		memcpy(fileName,controlBuff+9,(unsigned int)controlBuff[8]);
-	}else if(controlBuff[1]==0x01){
+	}
+	else if(controlBuff[1]==0x01)
+	{
 		fileName = malloc((unsigned int)controlBuff[2]+1);
 		memcpy(fileName,controlBuff+3,(unsigned int)controlBuff[2]);
 		fileSize = (unsigned int*)(controlBuff+(unsigned int)controlBuff[2]+2);
-	}else{
+	}
+	else
+	{
 		printf("Controll packet contained an unkown Type\n");
 		return NULL;
 	}
@@ -245,13 +180,13 @@ char* readControllPacket(unsigned char* controlBuff, char controll, unsigned int
 }
 
 
-char switch_sequence_number(char previous_num){
-	if(previous_num == 0){
+char switchSequenceNumber(char previous_num){
+	if(previous_num == 0)
 		return 1;
-	}
-	if (previous_num == 1) {
+
+	if (previous_num == 1)
 		return 0;
-	}
+
 	printf("Sequence number is out of range\n");
 	return -1;
 }

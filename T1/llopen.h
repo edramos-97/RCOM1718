@@ -16,7 +16,10 @@
 
 unsigned char SET[5];
 
+
 int stateMachine(int fd, unsigned char message);
+
+
 int llopen(char* porta, int type);
 
 
