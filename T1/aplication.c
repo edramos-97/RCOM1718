@@ -16,40 +16,41 @@
 #include "llclose.h"
 
 
-unsigned int j = 0, i = 0;
-
 int main(int argc, char** argv) {
+
 	if (argc != 4){
 		perror("Wrong number of arguments");
 		return -1;
 	}
+
 	(void) signal(SIGALRM, writeTimeOut);
 
-	if(atoi(argv[2]) == TRANSMITTER){
+	if(atoi(argv[2]) == TRANSMITTER) {
 
 		//OPEN AND READ FILE TO BUFFER
 		FILE *input;
 		input = fopen(argv[3],"rb");
-		if(input == NULL) perror("Input error");
+
+		if(input == NULL){
+			perror("Input error");
+			exit(-1);
+		}
 		int fileSize = fsize(input);
 		unsigned char buffer[fileSize];
 		fread(buffer,sizeof(char), fileSize, input);
 		fclose(input);
 		//FILE READ TO BUFFER
 
+		//OPENING SERIAL PORT
 		llopen(argv[1],TRANSMITTER);
 
 		unsigned int length = 0;
 
-		//SEND START PACK
+		printf("\nSEND START PACK\n");
 		unsigned char * controlBuff = controlPacking(C_START,fileSize,argv[3],strlen(argv[3]),&length);
 		llwrite(fd,controlBuff,length);
-
-		// for(j=0; j < length; j++)
-		//   printf("Start pack hex: %x\n", controlBuff[j]);
-		// for(j=0; j < length; j++)
-		//   printf("Start pack: %c\n", controlBuff[j]);
 		free(controlBuff);
+		printf("\nSENT START PACKET SUCCESSFULLY\n\n");
 
 		unsigned int index = 0;
 		unsigned int blocks = fileSize / MAX_SIZE;
@@ -58,93 +59,67 @@ int main(int argc, char** argv) {
 		printf("Sending %d bytes over %d packages of %d bytes and 1 package of %d bytes\n",total,blocks,MAX_SIZE,rest);
 
 		unsigned char * dataBuff;
+
+		//SENDING FILE ON BLOCKS
 		for (index = 0; index < blocks; index++) {
 			dataBuff = dataPackaging(buffer+(MAX_SIZE*index), MAX_SIZE);
-
-			// for(j=0; j < MAX_SIZE+PACKING_HEADER_SIZE; j++)
-			//   printf("Data pack: %x\n", dataBuff[j]);
-			// 	printf("END FOR\n");
-
-			//printf("Sending package # %d", index + 1);
 			llwrite(fd,dataBuff,MAX_SIZE+PACKING_HEADER_SIZE);
 			free(dataBuff);
 		}
 
+		//SENDING REST OF FILE
 		if(rest > 0) {
 			dataBuff = dataPackaging(buffer+MAX_SIZE*index, rest);
-			// for(j=0; j < rest+PACKING_HEADER_SIZE; j++)
-			// 	printf("Data pack: %x\n", dataBuff[j]);
 			printf("Sending package no %d", index + 1);
 			llwrite(fd,dataBuff,rest+PACKING_HEADER_SIZE);
 		}
 
+		printf("\nSEND END PACKET\n");
 		controlBuff = controlPacking(C_END,fileSize,argv[3],strlen(argv[3]),&length);
-		printf("\nSending END\n");
 		llwrite(fd,controlBuff,length);
-		// for(j=0; j < length; j++)
-		// 	printf("End pack hex: %x\n", controlBuff[j]);
-		// for(j=0; j < length; j++)
-		// 	printf("End pack: %c\n", controlBuff[j]);
 		free(controlBuff);
+		printf("\nSENT END PACKET SUCCESSFULLY\n");
 
 		if(llclose(fd, TRANSMITTER)<0){
 			printf("Error to diconnected!\n");
 			return -1;
 		}
-
 	}
 
 	if(atoi(argv[2]) == RECEIVER){
+
+		//OPENING SERIAL PORT
 		llopen(argv[1],RECEIVER);
 
 		unsigned int length = 1;
 
+		printf("\nWAITING FOR START PACKET\n");
 		unsigned char* controlBuff = malloc(length);
 		controlBuff = llread(fd,controlBuff,&length);
+		printf("\nRECIEVED START PACKET\n");
 
 		unsigned int fileSize=0;
 		char * fileName;
-		//
-		// //RECIEVE START CONTROLL BUFF
-		// if(controlBuff[0]!=C_START){
-		// 	printf("First packet read was not START identifier\n");}
-		// else if(controlBuff[1]==0x00){
-		// 	fileSize = (unsigned int*)(controlBuff+3);
-		// 	printf("Size: %d\n",*fileSize);
-		// 	fileName = malloc((unsigned int)controlBuff[8]+1);
-		// 	memcpy(fileName,controlBuff+9,(unsigned int)controlBuff[8]);
-		// 	printf("Name: %s\n",fileName);
-		// }else if(controlBuff[1]==0x01){
-		// 	fileName = malloc((unsigned int)controlBuff[2]+1);
-		// 	memcpy(fileName,controlBuff+3,(unsigned int)controlBuff[2]);
-		// 	printf("Name: %s\n",fileName);
-		// 	fileSize = (unsigned int*)(controlBuff+(unsigned int)controlBuff[2]+2);
-		// 	printf("Size: %d\n",*fileSize);
-		// }else{
-		// 	printf("START controll packet contained an unkown Type\n");
-		// }
-		fileName = readControllPacket(controlBuff, C_START, &fileSize);
 
+		//ANALYSING START PACKET INFO
+		fileName = readControllPacket(controlBuff, C_START, &fileSize);
+		if(fileName == NULL) {
+			perror("FileName error");
+			exit(-1);
+		}
 
 		printf("Size: %d\n",fileSize);
 		printf("Name: %s\n",fileName);
-		printf("passou print\n");
 
 		unsigned char* buff = malloc(fileSize);
-
-
 		unsigned int index = 0;
-		unsigned int blocks = fileSize / MAX_SIZE;
-		printf("blocks : %d\n",blocks);
-
 		unsigned int dataBuffLength = 1;
 		unsigned char* dataBuff;
 
-		//for (index = 0; index <= blocks; index++) {
-		index=0;
+		//
 		while (TRUE) {
 			dataBuff = malloc(dataBuffLength);
-			printf("Gonna try to read the block no: %d\n", index + 1);
+			printf("Gonna try to read the block no: %d\n", index);
 			dataBuff = llread(fd,dataBuff,&dataBuffLength);
 
 			if (dataBuff == NULL){
@@ -152,10 +127,7 @@ int main(int argc, char** argv) {
 				continue;
 			}
 
-			// for(j=0; j < dataBuffLength; j++)
-			// 	printf("Data pack: %x\n", dataBuff[j]);
-			// printf("END FOR\n");
-			if (dataBuff[0]==C_END) {
+			if (dataBuff[0] == C_END) {
 				printf("recebeu end\n");
 				break;
 			}
@@ -169,17 +141,11 @@ int main(int argc, char** argv) {
 
 			unsigned int i;
 			for (i = 0; i < length; i++) {
-				buff[index*MAX_SIZE+i] = dataBuff[i+4];
+				buff[index+i] = dataBuff[i+4];
 			}
-			index++;
+			index += length;
 			free(dataBuff);
 		}
-
-
-
-		//llwrite(fd,(unsigned char*)argv[2], atoi(argv[3]));
-		//unsigned char* buff = malloc(12000);
-		//unsigned char* buffer[MAX_SIZE+PACKING_HEADER_SIZE];
 
 		FILE * output = fopen(fileName,"wb");
 		if(output == NULL) perror("output error");
@@ -189,45 +155,10 @@ int main(int argc, char** argv) {
 			printf("Error to diconnected!\n");
 			return -1;
 		}
-		//}
 
-		fclose(output); //Isto crasha o programa
+		fclose(output);
 	}
 
-	/*********
-	Testing!!!
-	**********/
-	/* int numberArgs = atoi(argv[2]);
-	unsigned char* trama = dataPackaging(buffer, fileSize);
-
-	unsigned char* pack =  createHeader(0xFF);
-	//char* tail = malloc()
-	unsigned char* tail = createTail(trama, fileSize+4);
-	free(trama);
-	free(tail);*/
-
-	//unsigned int i;
-
-	/*
-	for(i=0; i<numberArgs; i++)
-	pack[4+i] = trama[i];
-	numberArgs += 4;
-
-	for(i=0; i<2; i++)
-	pack[numberArgs+i] = tail[i];
-	numberArgs += 2;
-	free(trama);
-
-	pack = bitStuffing(pack,&numberArgs);
-	byteDestuffing(pack, numberArgs);
-
-	for(i =0; i<numberArgs; i++)
-	printf("pack: %x\n",pack[i]);
-
-	unsigned int* var = 12158786;
-	unsigned char* name = "ababababababc";
-	controlPacking(0x02, 12158786, name, 13);
-	*/
 	printf("\nGonna exit\n\n");
 
 	return 0;
