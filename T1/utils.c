@@ -8,35 +8,18 @@
 
 int flag_recebeu = 0;
 
-
 void writeTimeOut()
 {
   if(flag_recebeu == 0 && numberTries < 4){
     printf("\nChamada # %d acabou\n", numberTries);
     numberTries++;
-    write(fd,lastPackage,lastPackageSize);
+    if(write(fd,lastPackage,lastPackageSize) < 0){
+        printf("Write timed out and can't write to FD! Exiting...\n");
+    }
     alarm(3);
   }
   if (numberTries == 3){
     printf("\nFALHOU");
     exit(-1);
   }
-}
-
-int fsize(FILE* file) {
-    long int currPos = ftell(file);
-
-    if (fseek(file, 0, SEEK_END) == -1){
-        perror("file size: ");
-		return -1;
-	}
-
-	// saving file size
-	long int size = ftell(file);
-
-	// seeking to the previously saved position
-	fseek(file, 0, currPos);
-
-	// returning size
-return size;
 }

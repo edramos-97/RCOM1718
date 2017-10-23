@@ -30,4 +30,11 @@ int llclose(int fd, int type);
  */
 unsigned char* supervisionPacking(unsigned char c);
 
+/**
+ * @brief Handler for SIGUSR1
+ *
+ * Handler for the SIGUSR1 signal. Handles an unexpected disconnection.
+ */
+void disconnectHandler();
+
 #endif

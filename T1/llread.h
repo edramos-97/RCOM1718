@@ -42,7 +42,7 @@ int sendHeader(unsigned char c);
  * @param buffer Application layer message to be read.
  * @return Returns the array of bytes read on success and NULL otherwise.
  */
-unsigned char* llread(int fd, unsigned char* buffer,unsigned int* length);
+unsigned char* llread(int fd, unsigned char* buffer);
 
 
 /**

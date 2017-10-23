@@ -70,3 +70,21 @@ unsigned char* controlPacking(unsigned char c, unsigned int fileSize,
 
     return buff;
   }
+
+int fsize(FILE* file) {
+   long int currPos = ftell(file);
+
+   if (fseek(file, 0, SEEK_END) == -1){
+      perror("file size: ");
+			return -1;
+	}
+
+	// saving file size
+	long int size = ftell(file);
+
+	// seeking to the previously saved position
+	fseek(file, 0, currPos);
+
+	// returning size
+	return size;
+}

@@ -8,14 +8,19 @@
 
 int main(int argc, char** argv) {
 
-	if (argc != 4){
-		perror("Wrong number of arguments");
+	if(atoi(argv[2]) && argc != 3){
+		printf("Expected 2 arguments, received %d\n", argc - 1);
+		return -1;
+	}
+	else if (!atoi(argv[2]) && argc != 4){
+		printf("Expected 3 arguments, received %d\n", argc - 1);
 		return -1;
 	}
 
 	(void) signal(SIGALRM, writeTimeOut);
+	(void) signal(SIGUSR1, disconnectHandler);
 
-	if(atoi(argv[2]) == TRANSMITTER) {
+	if(atoi(argv[2]) == TRANSMITTER) { // TRANSMITTER
 
 		//OPEN AND READ FILE TO BUFFER
 		FILE *input;
@@ -59,6 +64,21 @@ int main(int argc, char** argv) {
 			free(dataBuff);
 		}
 
+		// // END PACKET BEFORE IT SHOULD - FOR TESTING PURPOSES
+		// printf("\nSEND END PACKET\n\n");
+		// controlBuff = controlPacking(C_END,fileSize,argv[3],strlen(argv[3]),&length);
+		// llwrite(fd,controlBuff,length);
+		// free(controlBuff);
+		// printf("\nSENT END PACKET SUCCESSFULLY\n\n");
+		//
+		// // LLCLOSE BEFORE IT SHOULD - FOR TESTING PURPOSES
+		// if(llclose(fd, TRANSMITTER)<0){
+		// 	printf("Error to diconnected!\n");
+		// 	return -1;
+		// }
+		// return 0;
+
+
 		//SENDING REST OF FILE
 		if(rest > 0) {
 			packageNumber = (packageNumber+1) % 256;
@@ -79,7 +99,7 @@ int main(int argc, char** argv) {
 		}
 	}
 
-	if(atoi(argv[2]) == RECEIVER){
+	if(atoi(argv[2]) == RECEIVER){ // RECEIVER
 
 		//OPENING SERIAL PORT
 		llopen(argv[1],RECEIVER);
@@ -88,7 +108,7 @@ int main(int argc, char** argv) {
 
 		printf("\nWAITING FOR START PACKET\n");
 		unsigned char* controlBuff = malloc(length);
-		controlBuff = llread(fd,controlBuff,&length);
+		controlBuff = llread(fd,controlBuff);
 		printf("\nRECIEVED START PACKET\n");
 
 		unsigned int fileSize=0;
@@ -113,7 +133,7 @@ int main(int argc, char** argv) {
 		while (TRUE) {
 			dataBuff = malloc(dataBuffLength);
 			printf("Trying to read the block no: %d\n", index);
-			dataBuff = llread(fd,dataBuff,&dataBuffLength);
+			dataBuff = llread(fd,dataBuff);
 
 			//vERIFING FAILED READ
 			if (dataBuff == NULL){
@@ -123,6 +143,19 @@ int main(int argc, char** argv) {
 
 			//CHECKING FOR END OF DATA MESSAGES
 			if (dataBuff[0] == C_END) {
+				unsigned int fileSizeEnd;
+				readControllPacket(dataBuff, C_END, &fileSizeEnd);
+				if (fileSizeEnd != fileSize)
+					// fileSize differs
+					printf("Warning: START and END file size information differ.\n");
+				else if(fileSizeEnd > index){
+					// didn't read whole file
+					printf("Received END before reading the whole file size was read.\n");
+					if(llclose(fd, RECEIVER)<0)
+					printf("Error to diconnect!\n");
+					printf("File was not created\n");
+					return -1;
+				}
 				printf("Received END\n\n");
 				break;
 			}
@@ -150,7 +183,7 @@ int main(int argc, char** argv) {
 		fwrite(buff,sizeof(unsigned char),fileSize,output);
 
 		if(llclose(fd, RECEIVER)<0){
-			printf("Error to diconnected!\n");
+			printf("Error to diconnect!\n");
 			return -1;
 		}
 

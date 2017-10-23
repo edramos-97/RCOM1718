@@ -60,14 +60,4 @@ extern int fd;
  */
 void writeTimeOut();
 
-/**
- * @brief Returns the size of a file in bytes.
- *
- * Analyses a file and returns its size in number of bytes.
- *
- * @param file File pointer type of the file to be analysed.
- * @return Returns the number of bytes of the given file.
- */
-int fsize(FILE* file);
-
 #endif

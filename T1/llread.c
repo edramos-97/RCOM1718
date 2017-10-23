@@ -3,57 +3,60 @@
 char duplicate_flag = FALSE;
 char sequence_number_read = 0;
 
-unsigned char *  llread(int fd, unsigned char* buffer, unsigned int* length) { // length parameter is useless
+unsigned char *  llread(int fd, unsigned char* buffer) {
 
 	while(1) {
 
-		stateMachineRead(fd);
+		int discFlag = stateMachineRead(fd);
 		printf("Recebeu link layer Header\n");
 		unsigned int new_length = 1;
-	unsigned int i = 0;
-	while(read(fd, &buffer[i], 1)) {
-		if(buffer[i] == FLAG)
-			break;
-		new_length++;
-		buffer = realloc(buffer,new_length);
-		i++;
-	}
+		unsigned int i = 0;
+		while(read(fd, &buffer[i], 1)) {
+			if(buffer[i] == FLAG)
+				break;
+			new_length++;
+			buffer = realloc(buffer,new_length);
+			i++;
+		}
 
-	 if(i < 2){
-	 	printf("Error: no data in package!");
-	 	return NULL;
-	 }
+		if(i == 0 && discFlag == -1){
+			kill(getpid(),SIGUSR1);
+		}
 
-	buffer = byteDestuffing(buffer, &new_length);
+	 	if(i < 2){
+	 		printf("Error: no data in package!");
+	 		return NULL;
+	 	}
 
-	unsigned char bcc_received = buffer[new_length-2];
+		buffer = byteDestuffing(buffer, &new_length);
 
-	unsigned char bcc = 0;
-	 for(i = 0; i < new_length-2; i++) {
-		bcc ^= buffer[i];
-	 }
+		unsigned char bcc_received = buffer[new_length-2];
 
-	printf("bcc expected= %x; bcc received= %x\n",bcc , bcc_received);
+		unsigned char bcc = 0;
+	 	for(i = 0; i < new_length-2; i++) {
+			bcc ^= buffer[i];
+	 	}
 
-	if(duplicate_flag) {
-		printf("Duplicate Pack!\n");
-		if(sendHeader(C_RR(sequence_number_read))<0)
+		printf("bcc expected= %x; bcc received= %x\n",bcc , bcc_received);
+
+		if(duplicate_flag) {
+			printf("Duplicate Pack!\n");
+			if(sendHeader(C_RR(sequence_number_read))<0)
+				return NULL;
+		}
+		else if(bcc == bcc_received) {
+			printf("Data bcc ok!\n");
+			sendHeader(C_RR(sequence_number_read));
+			return buffer;
+		}
+		else {
+			printf("Data not bcc ok!\n");
+			sequence_number_read = switchSequenceNumber(sequence_number_read);
+			sendHeader(C_REJ(sequence_number_read));
 			return NULL;
-	}
-	else	if(bcc == bcc_received) {
-		printf("Data bcc ok!\n");
-		sendHeader(C_RR(sequence_number_read));
-		return buffer;
-	}
-	else {
-		printf("Data not bcc ok!\n");
-		sequence_number_read = switchSequenceNumber(sequence_number_read);
-		sendHeader(C_REJ(sequence_number_read));
-		return NULL;
-	}
- }
-
- return buffer;
+		}
+ 	}
+ 	return buffer;
 }
 
 unsigned char* byteDestuffing(unsigned char* buffer,unsigned int* length){
@@ -107,7 +110,7 @@ int stateMachineRead(int fd) {
 		      break;
 
 		      case 2:
-			if(received == C_INFO(0) || received == C_INFO(1)) {
+			if(received == C_INFO(0) || received == C_INFO(1) || received == C_DISC) {
 		      	state = 3;
 			received_C = received;}
 		      else if (received == FLAG) state = 1;
@@ -120,6 +123,9 @@ int stateMachineRead(int fd) {
 		      break;
 		    }
 		  }
+
+	if (received_C == C_DISC)
+		return -1;
 
 	if(received_C == C_INFO(1)){
 		if(sequence_number_read==0){duplicate_flag = TRUE;}
