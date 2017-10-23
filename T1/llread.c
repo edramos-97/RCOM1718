@@ -3,7 +3,7 @@
 char duplicate_flag = FALSE;
 char sequence_number_read = 0;
 
-unsigned char *  llread(int fd, unsigned char* buffer, unsigned int* length) {
+unsigned char *  llread(int fd, unsigned char* buffer, unsigned int* length) { // length parameter is useless
 
 	while(1) {
 

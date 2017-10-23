@@ -42,12 +42,13 @@ unsigned char* createTail(unsigned char* buffer, int length);
 unsigned char* createHeader(char c);
 
 /**
- * @brief Link Layer Function, creates an header with a given control byte
+ * @brief Link Layer Function, stuffs possible FLAG bytes to avoid message shortages.
  *
- * Follows the link layer protocol to calculate the bcc2 and add a flag.
+ * Follows the link layer protocol to stuff the message array.
  *
- * @param c Control byte of the header
- * @return Returns a two bytes array with the tail for the data received.
+ * @param buffer Array of bytes to be stuffed
+ * @param length Length of the buffer
+ * @return Returns the stuffed Array of bytes.
  */
 unsigned char* byteStuffing(unsigned char* buffer, int* length);
 
