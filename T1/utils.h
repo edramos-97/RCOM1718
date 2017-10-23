@@ -30,7 +30,7 @@
 #define C_START 0X02
 #define C_END 0x03
 #define C_DATA 0X00
-#define MAX_SIZE 100
+#define MAX_SIZE 72
 #define TIMEOUT		3
 #define NUMTRIES	3
 
@@ -48,8 +48,6 @@
 #define C_RR(x) (0b00000101 + ((x) << 7))
 #define C_REJ(x) (0b00000001 + ((x) << 7))
 
-extern unsigned char* lastPackage;
-extern unsigned int lastPackageSize;
 extern unsigned char sequenceNumber;
 extern unsigned char numberTries;
 extern int fd;

@@ -46,12 +46,6 @@ unsigned char* llread(int fd, unsigned char* buffer,unsigned int* length);
 
 
 /**
-*	Read data of control buffer.
-**/
-char* readControllPacket(unsigned char* controlBuff,char controll, unsigned int * filesize);
-
-
-/**
 *	Switch sequence number for next package.
 **/
 char switchSequenceNumber(char previous_num);

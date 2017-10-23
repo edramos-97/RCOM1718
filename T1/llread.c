@@ -148,38 +148,6 @@ int sendHeader(unsigned char c){
 	return 0;
 }
 
-char* readControllPacket(unsigned char* controlBuff, char controll, unsigned int * fileSize){
-	char * fileName;
-	unsigned int * size;
-
-	if(controlBuff[0]!=controll)
-	{
-		printf("Packet read  did not contain the expected identifier\n");
-		return NULL;
-	}
-	else if(controlBuff[1]==0x00)
-	{
-		size = (unsigned int*)(controlBuff+3);
-		fileName = malloc((unsigned int)controlBuff[8]+1);
-		memcpy(fileName,controlBuff+9,(unsigned int)controlBuff[8]);
-	}
-	else if(controlBuff[1]==0x01)
-	{
-		fileName = malloc((unsigned int)controlBuff[2]+1);
-		memcpy(fileName,controlBuff+3,(unsigned int)controlBuff[2]);
-		fileSize = (unsigned int*)(controlBuff+(unsigned int)controlBuff[2]+2);
-	}
-	else
-	{
-		printf("Controll packet contained an unkown Type\n");
-		return NULL;
-	}
-
-	*fileSize = *size;
-	return fileName;
-}
-
-
 char switchSequenceNumber(char previous_num){
 	if(previous_num == 0)
 		return 1;

@@ -1,9 +1,9 @@
-#include "sendMessage.h"
 #include "utils.h"
 #include "llwrite.h"
 #include "llopen.h"
 #include "llread.h"
 #include "llclose.h"
+#include "appLayerUtils.h"
 
 
 int main(int argc, char** argv) {
@@ -36,7 +36,7 @@ int main(int argc, char** argv) {
 
 		unsigned int length = 0;
 
-		printf("\nSEND START PACK\n");
+		printf("\nSEND START PACK\n\n");
 		unsigned char * controlBuff = controlPacking(C_START,fileSize,argv[3],strlen(argv[3]),&length);
 		llwrite(fd,controlBuff,length);
 		free(controlBuff);
@@ -46,25 +46,28 @@ int main(int argc, char** argv) {
 		unsigned int blocks = fileSize / MAX_SIZE;
 		unsigned int rest = fileSize % MAX_SIZE;
 		unsigned int total = blocks*MAX_SIZE+rest;
-		printf("Sending %d bytes over %d packages of %d bytes and 1 package of %d bytes\n",total,blocks,MAX_SIZE,rest);
+		printf("\nSending %d bytes over %d packages of %d bytes and 1 package of %d bytes\n",total,blocks,MAX_SIZE,rest);
 
 		unsigned char * dataBuff;
 
 		//SENDING FILE ON BLOCKS
 		for (index = 0; index < blocks; index++) {
+		  packageNumber = (packageNumber+1) % 256;
 			dataBuff = dataPackaging(buffer+(MAX_SIZE*index), MAX_SIZE);
+			printf("\n\nPackage number:  %d\n",packageNumber);
 			llwrite(fd,dataBuff,MAX_SIZE+PACKING_HEADER_SIZE);
 			free(dataBuff);
 		}
 
 		//SENDING REST OF FILE
 		if(rest > 0) {
+			packageNumber = (packageNumber+1) % 256;
 			dataBuff = dataPackaging(buffer+MAX_SIZE*index, rest);
-			printf("Sending package no %d", index + 1);
+			printf("\n\nPackage number:  %d\n",packageNumber);
 			llwrite(fd,dataBuff,rest+PACKING_HEADER_SIZE);
 		}
 
-		printf("\nSEND END PACKET\n");
+		printf("\nSEND END PACKET\n\n");
 		controlBuff = controlPacking(C_END,fileSize,argv[3],strlen(argv[3]),&length);
 		llwrite(fd,controlBuff,length);
 		free(controlBuff);

@@ -31,6 +31,7 @@ if(type == RECEIVER){
     } printf("Sent DISC\n");
 
   stateMachine(fd, C_UA);
+  printf("Received UA\n");
 }
   return 0;
 }

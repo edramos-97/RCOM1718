@@ -3,6 +3,8 @@
 
 #include "utils.h"
 
+extern unsigned char* lastPackage;
+extern unsigned int lastPackageSize;
 
 /**
  * @brief Writes a message to an existing file descriptor

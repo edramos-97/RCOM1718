@@ -1,17 +1,17 @@
+#include "llwrite.h"
 
 unsigned char sucessLastPackage = FALSE;
-unsigned int packageNumber = 0;
 
 int llwrite(int fd, unsigned char* buffer, int length){
 
   int n_chars = 0;
-  printf("\n\nPackage number:  %d\n",packageNumber);
 
   do{
 
     int numberArgs = length;
 
     printf("sequence %d\n",sequenceNumber);
+    printf("Sending");
     unsigned char* pack =  createHeader(C_INFO(sequenceNumber));
 
     unsigned char* tail = createTail(buffer, numberArgs);
@@ -66,21 +66,6 @@ unsigned char* createTail(unsigned char* buffer, int length){
   return tail;
 }
 
-unsigned char* dataPackaging(unsigned char* buffer, int length){
-  unsigned char* header = malloc(PACKING_HEADER_SIZE+length);
-  header[0] = C_DATA;
-  header[1] = packageNumber;
-  header[2] = (length / 256);
-  header[3] = (length % 256);
-
-  unsigned int i;
-  for(i=0;i<length;i++){
-    header[PACKING_HEADER_SIZE+i] = buffer[i];
-  }
-
-  return header;
-}
-
 unsigned char* byteStuffing(unsigned char* buffer, int* length) {
   unsigned char* buff = malloc(*length);
 
@@ -111,29 +96,6 @@ unsigned char* byteStuffing(unsigned char* buffer, int* length) {
   *length = new_length;
   return buff;
 }
-
-unsigned char* controlPacking(unsigned char c, unsigned int fileSize,
-  char* name, unsigned char nameSize,unsigned int* length){
-
-    (*length) = 5*sizeof(char)+sizeof(int)+nameSize;
-    unsigned char* buff = malloc(*length);
-
-    buff[0] = c;
-    buff[1] = 0x00;
-    buff[2] = sizeof(int);
-
-    unsigned int* int_location = (unsigned int *)(&buff[3]);
-    *int_location = fileSize;
-
-    buff[7]=0x01;
-    buff[8]=nameSize;
-
-    unsigned int i;
-    for(i = 0; i < nameSize; i++)
-    buff[9+i] = name[i];
-
-    return buff;
-  }
 
 int stateMachineReadAnswer(int fd) {
 
@@ -214,7 +176,4 @@ void verifyConditions(unsigned char received_C) {
     sequenceNumber = 1;
     sucessLastPackage = FALSE;
   }
-
-  if(sucessLastPackage)
-  packageNumber = (packageNumber+1) % 256;
 }
