@@ -54,7 +54,22 @@ extern unsigned char sequenceNumber;
 extern unsigned char numberTries;
 extern int fd;
 
+/**
+ * @brief Handler for SIGALRM
+ *
+ * Handler for the SIGALRM signal. Resends the last package writen after a timeout
+ * occurs.
+ */
 void writeTimeOut();
+
+/**
+ * @brief Returns the size of a file in bytes.
+ *
+ * Analyses a file and returns its size in number of bytes.
+ *
+ * @param file File pointer type of the file to be analysed.
+ * @return Returns the number of bytes of the given file.
+ */
 int fsize(FILE* file);
 
 #endif

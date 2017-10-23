@@ -10,9 +10,7 @@ int sendMessage(int fd, unsigned char* message, int length) {
 
 	lastPackage = message;
 	lastPackageSize = length;
-
 	alarm(3);
-
-
+	
 	return 0;
 }
