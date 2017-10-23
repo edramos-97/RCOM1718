@@ -1,4 +1,3 @@
-#include "llwrite.h"
 
 unsigned char sucessLastPackage = FALSE;
 unsigned int packageNumber = 0;
@@ -60,7 +59,7 @@ unsigned char* createTail(unsigned char* buffer, int length){
   unsigned int i;
 
   for(i = 0; i < length; i++)
-    tail[0] ^= buffer[i];
+  tail[0] ^= buffer[i];
 
   tail[1] = FLAG;
 
@@ -104,7 +103,7 @@ unsigned char* byteStuffing(unsigned char* buffer, int* length) {
       buff = realloc(buff,new_length);
       buff[j] = 0x5D;
     } else
-      buff[j] = buffer[i];
+    buff[j] = buffer[i];
   }
 
   buff[j] = buffer[*length-1];
@@ -136,86 +135,86 @@ unsigned char* controlPacking(unsigned char c, unsigned int fileSize,
     return buff;
   }
 
-  int stateMachineReadAnswer(int fd) {
+int stateMachineReadAnswer(int fd) {
 
-    unsigned char received, received_A, received_C;
-    int state = 0;
+  unsigned char received, received_A, received_C;
+  int state = 0;
 
-    while(state != 5) {
-      read(fd, &received, 1);
-      printf(".");
+  while(state != 5) {
+    read(fd, &received, 1);
+    printf(".");
 
-      switch(state) {
-        case 0:
-        if(received == FLAG) state = 1;
-        break;
-        case 1:
-        if(received == A) {
-          state = 2;
-          received_A = received;
-        }
-        else if (received == FLAG) state = 1;
-        else state = 0;
-        break;
-        case 2:
-        if(received == C_RR(1) || received == C_RR(0) ||
-        received == C_REJ(1) || received == C_REJ(0)) {
-          state = 3;
-          received_C = received;
-        }
-        else if (received == FLAG) state = 1;
-        else state = 0;
-        break;
-        case 3:
-        if(received == (received_A ^ received_C)) state = 4;
-        else state = 0;
-        break;
-        case 4:
-        if(received == FLAG) state = 5;
-        else state = 0;
-        break;
+    switch(state) {
+      case 0:
+      if(received == FLAG) state = 1;
+      break;
+      case 1:
+      if(received == A) {
+        state = 2;
+        received_A = received;
       }
+      else if (received == FLAG) state = 1;
+      else state = 0;
+      break;
+      case 2:
+      if(received == C_RR(1) || received == C_RR(0) ||
+      received == C_REJ(1) || received == C_REJ(0)) {
+        state = 3;
+        received_C = received;
+      }
+      else if (received == FLAG) state = 1;
+      else state = 0;
+      break;
+      case 3:
+      if(received == (received_A ^ received_C)) state = 4;
+      else state = 0;
+      break;
+      case 4:
+      if(received == FLAG) state = 5;
+      else state = 0;
+      break;
     }
-
-    verifyConditions(received_C);
-
-    alarm(0);
-    numberTries = 0;
-    return 0;
   }
 
-  void verifyConditions(unsigned char received_C) {
-    if(received_C == C_RR(0)){
-      if(sequenceNumber == 1){
-        printf(" Sent\n\n");
-        sequenceNumber = 0;
-        sucessLastPackage = TRUE;
-      } else {
-        printf(" Duplicate\n");
-        sucessLastPackage = FALSE;
-      }
-    }
-    else if(received_C == C_RR(1)){
-      if(sequenceNumber == 0){
-        printf(" Sent\n");
-        sequenceNumber = 1;
-        sucessLastPackage = TRUE;
-      } else {
-        printf(" Duplicate\n");
-        sucessLastPackage = FALSE;
-      }
-    }
-    else if(received_C == C_REJ(0)){
-      printf(" Rejected\nResending");
+  verifyConditions(received_C);
+
+  alarm(0);
+  numberTries = 0;
+  return 0;
+}
+
+void verifyConditions(unsigned char received_C) {
+  if(received_C == C_RR(0)){
+    if(sequenceNumber == 1){
+      printf(" Sent\n\n");
       sequenceNumber = 0;
+      sucessLastPackage = TRUE;
+    } else {
+      printf(" Duplicate\n");
       sucessLastPackage = FALSE;
     }
-    else if(received_C == C_REJ(1)){
-      printf(" Rejected\nResending");
-      sequenceNumber = 1;
-      sucessLastPackage = FALSE;
-    }
-
-    if(sucessLastPackage)
-    packageNumber = (packageNumber+1) % 256;
   }
+  else if(received_C == C_RR(1)){
+    if(sequenceNumber == 0){
+      printf(" Sent\n");
+      sequenceNumber = 1;
+      sucessLastPackage = TRUE;
+    } else {
+      printf(" Duplicate\n");
+      sucessLastPackage = FALSE;
+    }
+  }
+  else if(received_C == C_REJ(0)){
+    printf(" Rejected\nResending");
+    sequenceNumber = 0;
+    sucessLastPackage = FALSE;
+  }
+  else if(received_C == C_REJ(1)){
+    printf(" Rejected\nResending");
+    sequenceNumber = 1;
+    sucessLastPackage = FALSE;
+  }
+
+  if(sucessLastPackage)
+  packageNumber = (packageNumber+1) % 256;
+}

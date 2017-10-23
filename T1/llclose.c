@@ -8,6 +8,7 @@ int llclose(int fd, int type) {
 
   if(sendMessage(fd, discBuff, SUPERVISION_SIZE) < 0){
       printf("Send disconnect: failed\n");
+      return -1;
   } printf("Sent DISC\n");
 
   printf("Transmitter waiting for DISC\n");
@@ -17,6 +18,7 @@ int llclose(int fd, int type) {
 
   if(sendMessage(fd, discBuff, SUPERVISION_SIZE) < 0){
       printf("Send UA: failed\n");
+      return -1;
   } printf("Sent  UA\n");
 }
 if(type == RECEIVER){
@@ -25,6 +27,7 @@ if(type == RECEIVER){
 
     if(sendMessage(fd, discBuff, SUPERVISION_SIZE) < 0){
         printf("Send disconnect: failed\n");
+        return -1;
     } printf("Sent DISC\n");
 
   stateMachine(fd, C_UA);

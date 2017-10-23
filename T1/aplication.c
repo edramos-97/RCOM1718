@@ -106,22 +106,25 @@ int main(int argc, char** argv) {
 		unsigned int dataBuffLength = 1;
 		unsigned char* dataBuff;
 
-		//
+		//READING FILE BLOCKS
 		while (TRUE) {
 			dataBuff = malloc(dataBuffLength);
-			printf("Gonna try to read the block no: %d\n", index);
+			printf("Trying to read the block no: %d\n", index);
 			dataBuff = llread(fd,dataBuff,&dataBuffLength);
 
+			//vERIFING FAILED READ
 			if (dataBuff == NULL){
 				free(dataBuff);
 				continue;
 			}
 
+			//CHECKING FOR END OF DATA MESSAGES
 			if (dataBuff[0] == C_END) {
 				printf("Received END\n\n");
 				break;
 			}
 
+			//UNEXPECTED IDENTIFIER IN DATA PACKET
 			if (dataBuff[0] != 0x00){
 				printf("Packet read after START did not contain data END nor DATA identifier\n");
 			}
@@ -138,7 +141,6 @@ int main(int argc, char** argv) {
 		}
 
 		FILE * output = fopen(fileName,"wb");
-
 		if(output == NULL)
 			perror("output error");
 
