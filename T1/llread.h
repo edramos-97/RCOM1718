@@ -18,14 +18,29 @@ unsigned char* byteDestuffing(unsigned char* buffer, unsigned int* length);
 
 
 /**
-*	State Machine to validate fields
-**/
+ * @brief Link Layer Function, reads a data packet header and validates it.
+ *
+ * State machine to read a data packet, checks for duplicates and changes the
+ * sequence number and duplicate flag accordingly.
+ *
+ * @param fd File descriptor of the open serial port.
+ * @return Returns 0 on success, -1 otherwise.
+ */
 int stateMachineRead(int fd);
 
 
 /**
 *	Send header with answer.
 **/
+/**
+ * @brief Link Layer Function, sends a supervision packet.
+ *
+ * Receives a control byte, builds the supervision packet with it and sends it
+ * to the open serial port.
+ *
+ * @param c Control byte.
+ * @return Returns 0 on success, -1 otherwise.
+ */
 int sendHeader(unsigned char c);
 
 
@@ -46,8 +61,13 @@ unsigned char* llread(int fd, unsigned char* buffer);
 
 
 /**
-*	Switch sequence number for next package.
-**/
+ * @brief Link Layer Function, alternates between 0 and 1.
+ *
+ * Based on the previous number, changes to the other.
+ *
+ * @param previous_num Number previously received
+ * @return Returns the switched sequence number, -1 when the precious number is not a 0 or 1.
+ */
 char switchSequenceNumber(char previous_num);
 
 

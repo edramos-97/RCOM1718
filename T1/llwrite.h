@@ -60,7 +60,7 @@ unsigned char* byteStuffing(unsigned char* buffer, int* length);
  * success or insuccess, also chages the sequence number of the packets accordingly.
  *
  * @param fd File descriptor of the open serial port.
- * @return Returns a two bytes array with the tail for the data received.
+ * @return Returns 0 on success, 1 otherwise.
  */
 int stateMachineReadAnswer(int fd);
 

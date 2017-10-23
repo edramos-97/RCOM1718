@@ -8,8 +8,15 @@ extern unsigned int packageNumber;
 // Funções utils da aplicação
 
 /**
-*	Read data of control buffer.
-**/
+ * @brief Application Layer Function, reads START and END and registers the file size and file name.
+ *
+ * Reads the information about the file present on the control Packet.
+ *
+ * @param controlBuff data ot be read.
+ * @param controll 2 for START, 3 for END.
+ * @param filesize dimension of the file to be read.
+ * @return Returns the comlete data packet with the header
+ */
 char* readControllPacket(unsigned char* controlBuff,char controll, unsigned int * filesize);
 
 /**
