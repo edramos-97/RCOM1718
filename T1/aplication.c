@@ -70,7 +70,7 @@ int main(int argc, char** argv) {
 		//  llwrite(fd,controlBuff,length);
 		//  free(controlBuff);
 		//  printf("\nSENT END PACKET SUCCESSFULLY\n\n");
-		
+
 		//  // LLCLOSE BEFORE IT SHOULD - FOR TESTING PURPOSES
 		//  if(llclose(fd, TRANSMITTER)<0){
 		//  	printf("Error to diconnected!\n");
@@ -100,7 +100,7 @@ int main(int argc, char** argv) {
 	}
 
 	if(atoi(argv[2]) == RECEIVER){ // RECEIVER
-
+		unsigned int blockCounter = 0;
 		//OPENING SERIAL PORT
 		llopen(argv[1],RECEIVER);
 
@@ -165,7 +165,11 @@ int main(int argc, char** argv) {
 				printf("Packet read after START did not contain data END nor DATA identifier\n");
 			}
 
-			printf("Trying to read the block no: %d\n", dataBuff[1]);
+			printf("Trying to read the block no: %d\n", dataBuff[1] + blockCounter * 256);
+
+			if(dataBuff[1] == 255)
+				blockCounter++;
+
 			length = dataBuff[3] + dataBuff[2]*256;
 			printf("Block length: %d\n", length);
 
