@@ -40,6 +40,7 @@ unsigned char *  llread(int fd, unsigned char* buffer) {
 		printf("bcc expected= %x; bcc received= %x\n",bcc , bcc_received);
 
 		if(duplicate_flag) {
+			duplicate_flag = FALSE;
 			printf("Duplicate Pack!\n");
 			if(sendHeader(C_RR(sequence_number_read))<0)
 				return NULL;

@@ -64,19 +64,19 @@ int main(int argc, char** argv) {
 			free(dataBuff);
 		}
 
-		// // END PACKET BEFORE IT SHOULD - FOR TESTING PURPOSES
-		// printf("\nSEND END PACKET\n\n");
-		// controlBuff = controlPacking(C_END,fileSize,argv[3],strlen(argv[3]),&length);
-		// llwrite(fd,controlBuff,length);
-		// free(controlBuff);
-		// printf("\nSENT END PACKET SUCCESSFULLY\n\n");
-		//
-		// // LLCLOSE BEFORE IT SHOULD - FOR TESTING PURPOSES
-		// if(llclose(fd, TRANSMITTER)<0){
-		// 	printf("Error to diconnected!\n");
-		// 	return -1;
-		// }
-		// return 0;
+		//  // END PACKET BEFORE IT SHOULD - FOR TESTING PURPOSES
+		//  printf("\nSEND END PACKET\n\n");
+		//  controlBuff = controlPacking(C_END,fileSize,argv[3],strlen(argv[3]),&length);
+		//  llwrite(fd,controlBuff,length);
+		//  free(controlBuff);
+		//  printf("\nSENT END PACKET SUCCESSFULLY\n\n");
+		
+		//  // LLCLOSE BEFORE IT SHOULD - FOR TESTING PURPOSES
+		//  if(llclose(fd, TRANSMITTER)<0){
+		//  	printf("Error to diconnected!\n");
+		//  	return -1;
+		//  }
+		//  return 0;
 
 
 		//SENDING REST OF FILE
@@ -132,7 +132,6 @@ int main(int argc, char** argv) {
 		//READING FILE BLOCKS
 		while (TRUE) {
 			dataBuff = malloc(dataBuffLength);
-			printf("Trying to read the block no: %d\n", index);
 			dataBuff = llread(fd,dataBuff);
 
 			//vERIFING FAILED READ
@@ -150,9 +149,10 @@ int main(int argc, char** argv) {
 					printf("Warning: START and END file size information differ.\n");
 				else if(fileSizeEnd > index){
 					// didn't read whole file
-					printf("Received END before reading the whole file size was read.\n");
+					free(buff);
+					printf("Received END before the whole file size was read.\n");
 					if(llclose(fd, RECEIVER)<0)
-					printf("Error to diconnect!\n");
+						printf("Error to diconnect!\n");
 					printf("File was not created\n");
 					return -1;
 				}
@@ -165,6 +165,7 @@ int main(int argc, char** argv) {
 				printf("Packet read after START did not contain data END nor DATA identifier\n");
 			}
 
+			printf("Trying to read the block no: %d\n", dataBuff[1]);
 			length = dataBuff[3] + dataBuff[2]*256;
 			printf("Block length: %d\n", length);
 
