@@ -4,6 +4,8 @@
 #include "utils.h"
 #include "llwrite.h"
 
+extern double totalTime;
+
 
 /**
  * @brief Link Layer Function, destuffs possible FLAG bytes.
