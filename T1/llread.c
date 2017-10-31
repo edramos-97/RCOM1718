@@ -3,21 +3,44 @@
 char duplicate_flag = FALSE;
 char sequence_number_read = 0;
 
+struct timespec time_init;
+struct timespec time_curr;
+
+double totalTime = 0;
+
+float convertToMiliseconds(struct timespec t){
+	float res;
+	res =(t.tv_sec * 1000);
+	res+=((float)t.tv_nsec / 1000000);
+	return res;
+}
+
 unsigned char *  llread(int fd, unsigned char* buffer) {
 
 	while(1) {
+
+		printf("usleep\n");
+
 
 		int discFlag = stateMachineRead(fd);
 		printf("Recebeu link layer Header\n");
 		unsigned int new_length = 1;
 		unsigned int i = 0;
-		while(read(fd, &buffer[i], 1)) {
+
+		while(1) {
+			clock_gettime(CLOCK_MONOTONIC_RAW, &time_init);
+			usleep(40);
+			read(fd, &buffer[i], 1);
+			clock_gettime(CLOCK_MONOTONIC_RAW, &time_curr);
+			totalTime += convertToMiliseconds(time_curr)-convertToMiliseconds(time_init);
 			if(buffer[i] == FLAG)
 				break;
 			new_length++;
 			buffer = realloc(buffer,new_length);
 			i++;
 		}
+
+	printf("%f\n",totalTime);
 
 		if(i == 0 && discFlag == -1){
 			kill(getpid(),SIGUSR1);
