@@ -8,6 +8,8 @@
 
 int flag_recebeu = 0;
 
+double totalTime = 0;
+
 void writeTimeOut()
 {
   if(flag_recebeu == 0 && numberTries < 4){
@@ -22,4 +24,11 @@ void writeTimeOut()
     printf("\nFAILURE\n\n");
     exit(-1);
   }
+}
+
+float convertToMiliseconds(struct timespec t){
+	float res;
+	res =(t.tv_sec * 1000);
+	res+=((float)t.tv_nsec / 1000000);
+	return res;
 }

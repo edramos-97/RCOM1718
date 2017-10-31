@@ -142,7 +142,10 @@ int main(int argc, char** argv) {
 		//READING FILE BLOCKS
 		while (TRUE) {
 			dataBuff = malloc(dataBuffLength);
+			clock_gettime(CLOCK_MONOTONIC_RAW, &time_init);
 			dataBuff = llread(fd,dataBuff);
+			clock_gettime(CLOCK_MONOTONIC_RAW, &time_curr);
+			totalTime += convertToMiliseconds(time_curr)-convertToMiliseconds(time_init);
 
 			//vERIFING FAILED READ
 			if (dataBuff == NULL){

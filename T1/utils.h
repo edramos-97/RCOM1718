@@ -18,7 +18,7 @@
 
 
 
-#define BAUDRATE B38400
+#define BAUDRATE B115200
 #define MODEMDEVICE "/dev/ttyS1"
 #define _POSIX_SOURCE 1 /* POSIX compliant source */
 #define FALSE 		0
@@ -32,7 +32,7 @@
 #define C_START 0X02
 #define C_END 0x03
 #define C_DATA 0X00
-#define MAX_SIZE 64
+#define MAX_SIZE 10968
 #define TIMEOUT		3
 #define NUMTRIES	3
 
@@ -56,6 +56,9 @@ extern unsigned int sentPackets;
 extern unsigned int failPackets;
 extern int fd;
 
+struct timespec time_init;
+struct timespec time_curr;
+
 /**
  * @brief Handler for SIGALRM
  *
@@ -63,5 +66,7 @@ extern int fd;
  * occurs.
  */
 void writeTimeOut();
+
+float convertToMiliseconds(struct timespec t);
 
 #endif
