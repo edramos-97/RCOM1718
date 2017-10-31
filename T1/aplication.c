@@ -55,6 +55,8 @@ int main(int argc, char** argv) {
 
 		unsigned char * dataBuff;
 
+		clock_t begin = clock();
+
 		//SENDING FILE ON BLOCKS
 		for (index = 0; index < blocks; index++) {
 		  packageNumber = (packageNumber+1) % 256;
@@ -92,6 +94,14 @@ int main(int argc, char** argv) {
 		llwrite(fd,controlBuff,length);
 		free(controlBuff);
 		printf("\nSENT END PACKET SUCCESSFULLY\n\n");
+
+		clock_t end = clock();
+
+		double time_spent = (double)(end-begin)/CLOCKS_PER_SEC;
+
+		printf("Time spend sending data: %f\n",time_spent );
+		printf("Number of packets sent: %d\n",sentPackets);
+		printf("Number of packets failed: %d\n",failPackets);
 
 		if(llclose(fd, TRANSMITTER)<0){
 			printf("Error to diconnected!\n");
@@ -165,7 +175,7 @@ int main(int argc, char** argv) {
 				printf("Packet read after START did not contain data END nor DATA identifier\n");
 			}
 
-			printf("Trying to read the block no: %d\n", dataBuff[1] + blockCounter * 256);
+			printf("Trying to reaaplication.c:49:1: error: expd the block no: %d\n", dataBuff[1] + blockCounter * 256);
 
 			if(dataBuff[1] == 255)
 				blockCounter++;

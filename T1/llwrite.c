@@ -1,6 +1,7 @@
 #include "llwrite.h"
 
 unsigned char sucessLastPackage = FALSE;
+unsigned int failPackets = 0;
 
 int llwrite(int fd, unsigned char* buffer, int length){
 
@@ -97,7 +98,7 @@ unsigned char* byteStuffing(unsigned char* buffer, int* length) {
   return buff;
 }
 
-int stateMachineReadAnswer(int fd) {
+int stateMachineReadAnswer(int fd){
 
   unsigned char received, received_A, received_C;
   int state = 0;
@@ -154,6 +155,7 @@ void verifyConditions(unsigned char received_C) {
     } else {
       printf(" Duplicate\n");
       sucessLastPackage = FALSE;
+      failPackets++;
     }
   }
   else if(received_C == C_RR(1)){
@@ -164,16 +166,19 @@ void verifyConditions(unsigned char received_C) {
     } else {
       printf(" Duplicate\n");
       sucessLastPackage = FALSE;
+      failPackets++;
     }
   }
   else if(received_C == C_REJ(0)){
     printf(" Rejected\nResending");
     sequenceNumber = 0;
     sucessLastPackage = FALSE;
+    failPackets++;
   }
   else if(received_C == C_REJ(1)){
     printf(" Rejected\nResending");
     sequenceNumber = 1;
     sucessLastPackage = FALSE;
+    failPackets++;
   }
 }

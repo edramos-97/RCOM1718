@@ -14,6 +14,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <signal.h>
+#include <time.h>
+
 
 
 #define BAUDRATE B38400
@@ -30,7 +32,7 @@
 #define C_START 0X02
 #define C_END 0x03
 #define C_DATA 0X00
-#define MAX_SIZE 24
+#define MAX_SIZE 64
 #define TIMEOUT		3
 #define NUMTRIES	3
 
@@ -50,6 +52,8 @@
 
 extern unsigned char sequenceNumber;
 extern unsigned char numberTries;
+extern unsigned int sentPackets;
+extern unsigned int failPackets;
 extern int fd;
 
 /**

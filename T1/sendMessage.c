@@ -1,5 +1,7 @@
 #include "sendMessage.h"
 
+unsigned int sentPackets = 0;
+
 int sendMessage(int fd, unsigned char* message, int length) {
 
 	int bytesWritten = write(fd, message, length);
@@ -10,7 +12,8 @@ int sendMessage(int fd, unsigned char* message, int length) {
 
 	lastPackage = message;
 	lastPackageSize = length;
+	sentPackets++;
 	alarm(3);
-	
+
 	return 0;
 }
