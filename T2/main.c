@@ -49,7 +49,6 @@ int main(int argc, char *argv[]){
 	printf("host : %s\n",host );
 	printf("file : %s\n",file );
 
-return 1;
 	setbuf(stdout, NULL);
 
 	int	bytes;
@@ -100,11 +99,13 @@ read_reply(sockfd);
 printf("sai do read\n");
 
     	/*send a string to the server*/
+write(sockfd,"user ",5);
 bytes = write(sockfd, user, strlen(user));
 printf("Bytes escritos %d\n", bytes);
 
 read_reply(sockfd);
 
+write(sockfd,"pass ",5);
 bytes = write(sockfd, pass, strlen(pass));
 printf("Bytes escritos %d\n", bytes);
 
@@ -170,6 +171,7 @@ if(connect(sockfd_client,
 exit(0);
 }
 
+write(sockfd, "retr ", 5);
 bytes = write(sockfd, file, strlen(file));
 printf("Bytes escritos %d\n", bytes);
 
@@ -322,7 +324,7 @@ void readArgs(char* args, char* user, char* pass, char* host, char* file){
 
 			case 2:
 			if(args[index] == '/'){
-				host[inner_index] = '\n';
+				//host[inner_index] = '\n';
 				state = 3;
 				inner_index = 0;
 			} else {
