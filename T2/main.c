@@ -17,7 +17,7 @@
 #define MAX_STRING_SIZE 256
 
 char read_reply(int sockfd);
-void readArgs(char* args, char* user, char* pass, char* host, char* file);
+void readArgs(char* args, char* user, char* pass, char* host, char* file, int initState);
 
 
 int main(int argc, char *argv[]){
@@ -41,8 +41,13 @@ int main(int argc, char *argv[]){
 
 	//char quit[] = "quit\n";
 
-	readArgs(argv[1], user, pass, host, file);
-
+	if(strchr(argv[1],'@') != NULL)
+		readArgs(argv[1], user, pass, host, file, 0);
+	else {
+		readArgs(argv[1], user, pass, host, file, 2);
+		user = "anonymous\n";
+		pass = "clear\n";
+	}
 
 	printf("User : %s\n",user );
 	printf("pass : %s\n",pass );
@@ -315,9 +320,9 @@ char read_reply(int sockfd){
 }
 
 
-void readArgs(char* args, char* user, char* pass, char* host, char* file){
+void readArgs(char* args, char* user, char* pass, char* host, char* file, int initState){
 
-	int state = 0, index = 6, inner_index = 0;
+	int state = initState, index = 6, inner_index = 0;
 	while(index != strlen(args)) {
 		switch (state){
 			case 0:
