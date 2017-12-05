@@ -17,6 +17,8 @@
 #define FTP_PORT  21
 #define MAX_STRING_SIZE 256
 
+int verifyURL(char * url);
+void getFilename(char *path, char * filename);
 char read_reply(int sockfd);
 void readArgs(char* args, char* user, char* pass, char* host, char* file, int initState);
 
@@ -28,44 +30,9 @@ int main(int argc, char *argv[]){
 	struct	sockaddr_in server_addr;
 	struct  sockaddr_in client_addr;
 
-	//char	buf[] = "Mensagem de teste na travessia da pilha TCP/IP\n";
-	// char user[] = "user anonymous\n";
-	// char pass[] = "pass clear\n";
-	// char mode[] = "pasv\n";
-	// char file[] = "list\n";
+	if(verifyURL(argv[1]))
+		return -1;
 
-	regex_t regex;
-	int reti;
-	// char * url = malloc(strlen(argv[1]));
-	// memcpy(url,argv[1],strlen(argv[1]));
-	char msgbuf[100];
-
-	//ftp://ftp.up.pt/parrot/README.html
-	//"ftp://([a-z0-9]+:[a-z0-9]+@)?([\\.a-z0-9]+)/([\\./a-zA-Z0-9]+).$
-
-	/* Compile regular expression */
-	reti = regcomp(&regex, "^ftp://([a-z0-9]+:[a-z0-9]+@)?([\\.a-z0-9-]+)/([\\./a-z0-9-]+)$", REG_EXTENDED|REG_ICASE);
-	if (reti) {
-	    fprintf(stderr, "Could not compile regex\n");
-	    exit(1);
-	}
-
-	/* Execute regular expression */
-	reti = regexec(&regex, argv[1] , 0, NULL, 0);
-	if (!reti) {
-	    puts("Match");
-	}
-	else if (reti == REG_NOMATCH) {
-	    puts("No match");
-	}
-	else {
-	    regerror(reti, &regex, msgbuf, sizeof(msgbuf));
-	    fprintf(stderr, "Regex match failed: %s\n", msgbuf);
-	    exit(1);
-	}
-
-	/* Free memory allocated to the pattern buffer by regcomp() */
-	regfree(&regex);
 
 	char* user = malloc(MAX_STRING_SIZE);
 	char* pass = malloc(MAX_STRING_SIZE);
@@ -199,8 +166,8 @@ for(index = 0; index< strlen(temp_buf);index++){
 int second = atoi(&temp_buf[second_item]);
 int first = atoi(&temp_buf[0]);
 
-printf("secon = %d\n", second);
-printf("first = %d\n", first);
+printf("First port number = %d\n", first);
+printf("Second port number = %d\n", second);
 
 int new_port = 256*first+second;
 
@@ -237,7 +204,7 @@ if (verify_code == '4' || verify_code == '5'){
 }
 
 FILE *fp;
-fp=fopen("test.txt","a");
+fp=fopen("test.txt","w");
 
 
 	//int read_error = 0;
@@ -405,4 +372,52 @@ void readArgs(char* args, char* user, char* pass, char* host, char* file, int in
 	file[inner_index] = '\n';
 	file[inner_index + 1] = '\0';
 
+}
+
+
+void getFilename(char *path, char * filename){
+    int length = strlen(path);
+    int i, filenameIndex = 0;
+    for(i = 0; i < length; i++) {
+        if(path[i] == '/') {
+            memset(filename,0,MAX_STRING_SIZE);
+            filenameIndex = 0;
+        }
+        else{
+            filename[filenameIndex] = path[i];
+            filenameIndex++;
+        }
+    }
+}
+
+int verifyURL(char * url){
+	regex_t regex;
+	int reti;
+	char msgbuf[100];
+
+	/* Compile regular expression */
+	reti = regcomp(&regex, "^ftp://([a-z0-9]+:[a-z0-9]+@)?([\\.a-z0-9-]+)/([\\./a-z0-9-]+)$", REG_EXTENDED|REG_ICASE);
+	if (reti) {
+			fprintf(stderr, "Could not compile regex\n");
+			exit(1);
+	}
+
+	/* Execute regular expression */
+	reti = regexec(&regex, url , 0, NULL, 0);
+	if (!reti) {
+		puts("Valid URL checked!");
+		return 0;
+	}
+	else if (reti == REG_NOMATCH) {
+		puts("Please insert a ftp url in the format ftp://[<username>:<password>@]<hostame>/<file-path>");
+		return 1;
+	}
+	else {
+			regerror(reti, &regex, msgbuf, sizeof(msgbuf));
+			fprintf(stderr, "Regex match failed: %s\n", msgbuf);
+			exit(1);
+	}
+
+	/* Free memory allocated to the pattern buffer by regcomp() */
+	regfree(&regex);
 }
