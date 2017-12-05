@@ -10,6 +10,7 @@
 #include <string.h>
 #include <errno.h>
 #include <ctype.h>
+#include <regex.h>
 
 
 
@@ -32,7 +33,40 @@ int main(int argc, char *argv[]){
 	// char pass[] = "pass clear\n";
 	// char mode[] = "pasv\n";
 	// char file[] = "list\n";
-	
+
+	regex_t regex;
+	int reti;
+	// char * url = malloc(strlen(argv[1]));
+	// memcpy(url,argv[1],strlen(argv[1]));
+	char msgbuf[100];
+
+	//ftp://ftp.up.pt/parrot/README.html
+	//"ftp://([a-z0-9]+:[a-z0-9]+@)?([\\.a-z0-9]+)/([\\./a-zA-Z0-9]+).$
+
+	/* Compile regular expression */
+	reti = regcomp(&regex, "^ftp://([a-z0-9]+:[a-z0-9]+@)?([\\.a-z0-9-]+)/([\\./a-z0-9-]+)$", REG_EXTENDED|REG_ICASE);
+	if (reti) {
+	    fprintf(stderr, "Could not compile regex\n");
+	    exit(1);
+	}
+
+	/* Execute regular expression */
+	reti = regexec(&regex, argv[1] , 0, NULL, 0);
+	if (!reti) {
+	    puts("Match");
+	}
+	else if (reti == REG_NOMATCH) {
+	    puts("No match");
+	}
+	else {
+	    regerror(reti, &regex, msgbuf, sizeof(msgbuf));
+	    fprintf(stderr, "Regex match failed: %s\n", msgbuf);
+	    exit(1);
+	}
+
+	/* Free memory allocated to the pattern buffer by regcomp() */
+	regfree(&regex);
+
 	char* user = malloc(MAX_STRING_SIZE);
 	char* pass = malloc(MAX_STRING_SIZE);
 	char mode[] = "pasv\n";
