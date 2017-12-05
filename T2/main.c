@@ -16,7 +16,7 @@
 #define FTP_PORT  21
 #define MAX_STRING_SIZE 256
 
-void read_reply(int sockfd);
+char read_reply(int sockfd);
 void readArgs(char* args, char* user, char* pass, char* host, char* file);
 
 
@@ -32,7 +32,7 @@ int main(int argc, char *argv[]){
 	// char pass[] = "pass clear\n";
 	// char mode[] = "pasv\n";
 	// char file[] = "list\n";
-	
+
 	char* user = malloc(MAX_STRING_SIZE);
 	char* pass = malloc(MAX_STRING_SIZE);
 	char mode[] = "pasv\n";
@@ -40,7 +40,7 @@ int main(int argc, char *argv[]){
 	char* file = malloc(MAX_STRING_SIZE);
 
 	//char quit[] = "quit\n";
-	
+
 	readArgs(argv[1], user, pass, host, file);
 
 
@@ -96,22 +96,34 @@ int main(int argc, char *argv[]){
 	// }
 
 read_reply(sockfd);
+
 printf("sai do read\n");
 
-    	/*send a string to the server*/
+    	/*send a user to the server*/
 write(sockfd,"user ",5);
 bytes = write(sockfd, user, strlen(user));
 printf("Bytes escritos %d\n", bytes);
 
-read_reply(sockfd);
+char verify_code = read_reply(sockfd);
+if (verify_code == '4' || verify_code == '5'){
+	printf("reply code error.\n");
+	close(sockfd);
+	return -1;
+}
 
+			/*send a pass to the server*/
 write(sockfd,"pass ",5);
 bytes = write(sockfd, pass, strlen(pass));
 printf("Bytes escritos %d\n", bytes);
 
-read_reply(sockfd);
+verify_code = read_reply(sockfd);
+if (verify_code == '4' || verify_code == '5'){
+	printf("reply code error.\n");
+	close(sockfd);
+	return -1;
+}
 
-
+			/*send a mode (pasv) to the server*/
 bytes = write(sockfd, mode, strlen(mode));
 printf("Bytes escritos %d\n", bytes);
 
@@ -171,12 +183,19 @@ if(connect(sockfd_client,
 exit(0);
 }
 
+			/*send a request to retrieve file to the server*/
 write(sockfd, "retr ", 5);
 bytes = write(sockfd, file, strlen(file));
 printf("Bytes escritos %d\n", bytes);
 
 
-read_reply(sockfd);
+verify_code = read_reply(sockfd);
+if (verify_code == '4' || verify_code == '5'){
+	printf("reply code error.\n");
+	close(sockfd);
+	close(sockfd_client);
+	return -1;
+}
 
 FILE *fp;
 fp=fopen("test.txt","a");
@@ -201,7 +220,7 @@ return 0;
 }
 
 
-void read_reply(int sockfd){
+char read_reply(int sockfd){
 	int state=0;
 	char temp;
 	char reply_code[4];
@@ -292,11 +311,12 @@ void read_reply(int sockfd){
 			break;
 		}
 	}
+	return reply_code[0];
 }
 
 
 void readArgs(char* args, char* user, char* pass, char* host, char* file){
-	
+
 	int state = 0, index = 6, inner_index = 0;
 	while(index != strlen(args)) {
 		switch (state){
@@ -342,5 +362,5 @@ void readArgs(char* args, char* user, char* pass, char* host, char* file){
 	}
 
 	file[inner_index] = '\n';
-	
+
 }
