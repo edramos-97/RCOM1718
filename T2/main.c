@@ -49,8 +49,8 @@ int main(int argc, char *argv[]){
 		pass = "clear\n";
 	}
 
-	printf("User : %s\n",user );
-	printf("pass : %s\n",pass );
+	printf("\nUser : %s",user );
+	printf("pass : %s",pass );
 	printf("host : %s\n",host );
 	printf("file : %s\n",file );
 
