@@ -34,7 +34,6 @@ int main(int argc, char *argv[]){
 	// char mode[] = "pasv\n";
 	// char file[] = "list\n";
 
-<<<<<<< HEAD
 	regex_t regex;
 	int reti;
 	// char * url = malloc(strlen(argv[1]));
@@ -68,8 +67,6 @@ int main(int argc, char *argv[]){
 	/* Free memory allocated to the pattern buffer by regcomp() */
 	regfree(&regex);
 
-=======
->>>>>>> 1b047eff62003034101da76a57d7944cde1f04f4
 	char* user = malloc(MAX_STRING_SIZE);
 	char* pass = malloc(MAX_STRING_SIZE);
 	char mode[] = "pasv\n";
@@ -365,6 +362,7 @@ void readArgs(char* args, char* user, char* pass, char* host, char* file, int in
 			case 0:
 			if(args[index] == ':'){
 				user[inner_index] = '\n';
+				user[inner_index + 1] = '\0';
 				state = 1;
 				inner_index = 0;
 			} else {
@@ -376,6 +374,7 @@ void readArgs(char* args, char* user, char* pass, char* host, char* file, int in
 			case 1:
 			if(args[index] == '@'){
 				pass[inner_index] = '\n';
+				pass[inner_index + 1] = '\0';
 				state = 2;
 				inner_index = 0;
 			} else {
@@ -386,7 +385,7 @@ void readArgs(char* args, char* user, char* pass, char* host, char* file, int in
 
 			case 2:
 			if(args[index] == '/'){
-				//host[inner_index] = '\n';
+				host[inner_index] = '\0';
 				state = 3;
 				inner_index = 0;
 			} else {
@@ -404,5 +403,6 @@ void readArgs(char* args, char* user, char* pass, char* host, char* file, int in
 	}
 
 	file[inner_index] = '\n';
+	file[inner_index + 1] = '\0';
 
 }
