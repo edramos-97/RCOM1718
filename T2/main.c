@@ -12,8 +12,6 @@
 #include <ctype.h>
 #include <regex.h>
 
-
-
 #define FTP_PORT  21
 #define MAX_STRING_SIZE 256
 
@@ -23,25 +21,24 @@ char read_reply(int sockfd);
 void readArgs(char* args, char* user, char* pass, char* host, char* file, int initState);
 
 
-int main(int argc, char *argv[]){
+int main(int argc, char *argv[]) {
 
-	struct hostent *h;
-	int	sockfd,sockfd_client;
+	struct  hostent *h;
+	int	    sockfd,sockfd_client;
 	struct	sockaddr_in server_addr;
 	struct  sockaddr_in client_addr;
 
+	//Verify url with regex 
 	if(verifyURL(argv[1]))
 		return -1;
 
+	char* user   = malloc(MAX_STRING_SIZE);
+	char* pass   = malloc(MAX_STRING_SIZE);
+	char  mode[] = "pasv\n";
+	char* host   = malloc(MAX_STRING_SIZE);
+	char* file   = malloc(MAX_STRING_SIZE);
 
-	char* user = malloc(MAX_STRING_SIZE);
-	char* pass = malloc(MAX_STRING_SIZE);
-	char mode[] = "pasv\n";
-	char* host = malloc(MAX_STRING_SIZE);
-	char* file = malloc(MAX_STRING_SIZE);
-
-	//char quit[] = "quit\n";
-
+	
 	if(strchr(argv[1],'@') != NULL)
 		readArgs(argv[1], user, pass, host, file, 0);
 	else {
@@ -64,7 +61,7 @@ int main(int argc, char *argv[]){
 		exit(1);
 	}
 
-	h=gethostbyname(host);
+	h = gethostbyname(host);
 
 	if (h == NULL) {
 		herror("gethostbyname");
@@ -72,157 +69,143 @@ int main(int argc, char *argv[]){
 	}
 
 	printf("Host name  : %s\n", h->h_name);
-	printf("IP Address : %s\n",inet_ntoa(*((struct in_addr *)h->h_addr)));
+	printf("IP Address : %s\n", inet_ntoa(*((struct in_addr *)h->h_addr)));
 
-	/*server address handling*/
+	// server address handling
 	bzero((char*)&server_addr,sizeof(server_addr));
 	server_addr.sin_family = AF_INET;
 	server_addr.sin_addr.s_addr = inet_addr(inet_ntoa(*((struct in_addr *)h->h_addr)));	/*32 bit Internet address network byte ordered*/
 	server_addr.sin_port = htons(FTP_PORT);		/*server TCP port must be network byte ordered */
 
-	/*open an TCP socket*/
+	// open an TCP socket
 	if ((sockfd = socket(AF_INET,SOCK_STREAM,0)) < 0) {
 		perror("socket()");
 		exit(0);
 	}
-	/*connect to the server*/
+	// connect to the server
 	if(connect(sockfd,
 		(struct sockaddr *)&server_addr,
 		sizeof(server_addr)) < 0){
 		perror("connect()");
-	exit(0);
-}
-
-
-	// char temp = 0;
-	// while(read(sockfd,&temp,1)){
-	// 	printf("%c", temp);
-	// 	if(temp == ' ')
-	// 		break;
-	// }
-
-read_reply(sockfd);
-
-printf("sai do read\n");
-
-    	/*send a user to the server*/
-write(sockfd,"user ",5);
-bytes = write(sockfd, user, strlen(user));
-printf("Bytes escritos %d\n", bytes);
-
-char verify_code = read_reply(sockfd);
-if (verify_code == '4' || verify_code == '5'){
-	printf("reply code error.\n");
-	close(sockfd);
-	return -1;
-}
-
-			/*send a pass to the server*/
-write(sockfd,"pass ",5);
-bytes = write(sockfd, pass, strlen(pass));
-printf("Bytes escritos %d\n", bytes);
-
-verify_code = read_reply(sockfd);
-if (verify_code == '4' || verify_code == '5'){
-	printf("reply code error.\n");
-	close(sockfd);
-	return -1;
-}
-
-			/*send a mode (pasv) to the server*/
-bytes = write(sockfd, mode, strlen(mode));
-printf("Bytes escritos %d\n", bytes);
-
-char temp = 0;
-int adress = 0;
-char temp_buf[7];
-int index = 0;
-while(read(sockfd,&temp,1)){
-	printf("%c", temp);
-	if(temp == '.')
-		break;
-	if(temp==')')
-		adress=0;
-	if (adress >= 4) {
-		temp_buf[index]=temp;
-		index++;
+		exit(0);
 	}
-	if(temp == ',')
-		adress++;
-}
 
-printf("%s\n",temp_buf );
 
-int second_item = 0;
+	read_reply(sockfd);
 
-for(index = 0; index< strlen(temp_buf);index++){
-	if(temp_buf[index]==','){
-		temp_buf[index] = '\0';
-		second_item = index+1;
-		break;
+    // send a user to the server
+	write(sockfd,"user ",5);
+	bytes = write(sockfd, user, strlen(user));
+	printf("Written bytes %d\n", bytes);
+
+	char verify_code = read_reply(sockfd);
+	if (verify_code == '4' || verify_code == '5'){
+		printf("reply code error.\n");
+		close(sockfd);
+		return -1;
 	}
-}
 
-int second = atoi(&temp_buf[second_item]);
-int first = atoi(&temp_buf[0]);
+	// send a pass to the server
+	write(sockfd,"pass ",5);
+	bytes = write(sockfd, pass, strlen(pass));
+	printf("Written bytes %d\n", bytes);
 
-printf("First port number = %d\n", first);
-printf("Second port number = %d\n", second);
+	verify_code = read_reply(sockfd);
+	if (verify_code == '4' || verify_code == '5'){
+		printf("reply code error.\n");
+		close(sockfd);
+		return -1;
+	}
 
-int new_port = 256*first+second;
+	// send a mode (pasv) to the server
+	bytes = write(sockfd, mode, strlen(mode));
+	printf("Written bytes %d\n", bytes);
 
-bzero((char*)&client_addr,sizeof(client_addr));
-client_addr.sin_family = AF_INET;
+	char temp = 0;
+	int adress = 0;
+	char temp_buf[7];
+	int index = 0;
+	while(read(sockfd,&temp,1)){
+		printf("%c", temp);
+		if(temp == '.')
+			break;
+		if(temp==')')
+			adress=0;
+		if (adress >= 4) {
+			temp_buf[index]=temp;
+			index++;
+		}
+		if(temp == ',')
+			adress++;
+	}
+
+	printf("%s\n",temp_buf );
+
+	int second_item = 0;
+
+	for(index = 0; index< strlen(temp_buf); index++){
+		if(temp_buf[index]==','){
+			temp_buf[index] = '\0';
+			second_item = index+1;
+			break;
+		}
+	}
+
+	int second = atoi(&temp_buf[second_item]);
+	int first = atoi(&temp_buf[0]);
+
+	printf("First port number = %d\n", first);
+	printf("Second port number = %d\n", second);
+
+	int new_port = 256*first+second;
+
+	bzero((char*)&client_addr,sizeof(client_addr));
+	client_addr.sin_family = AF_INET;
 	client_addr.sin_addr.s_addr = inet_addr(inet_ntoa(*((struct in_addr *)h->h_addr)));	/*32 bit Internet address network byte ordered*/
-client_addr.sin_port = htons(new_port);
+	client_addr.sin_port = htons(new_port);
 
 
-if ((sockfd_client = socket(AF_INET,SOCK_STREAM,0)) < 0) {
-	perror("socket()");
-	exit(0);
-}
-	/*connect to the server*/
-if(connect(sockfd_client,
-	(struct sockaddr *)&client_addr,
-	sizeof(client_addr)) < 0){
-	perror("connect()");
-exit(0);
-}
+	if ((sockfd_client = socket(AF_INET,SOCK_STREAM,0)) < 0) {
+		perror("socket()");
+		exit(0);
+	}
 
-			/*send a request to retrieve file to the server*/
-write(sockfd, "retr ", 5);
-bytes = write(sockfd, file, strlen(file));
-printf("Bytes escritos %d\n", bytes);
+	// connect to the server
+	if(connect(sockfd_client,(struct sockaddr *)&client_addr, sizeof(client_addr)) < 0){
+		perror("connect()");
+		exit(0);
+	}
+
+	// send a request to retrieve file to the server
+	write(sockfd, "retr ", 5);
+	bytes = write(sockfd, file, strlen(file));
+	printf("Written bytes %d\n", bytes);
 
 
-verify_code = read_reply(sockfd);
-if (verify_code == '4' || verify_code == '5'){
-	printf("reply code error.\n");
+	verify_code = read_reply(sockfd);
+	if (verify_code == '4' || verify_code == '5'){
+		printf("reply code error.\n");
+		close(sockfd);
+		close(sockfd_client);
+		return -1;
+	}
+
+	char filename[MAX_STRING_SIZE];
+	getFilename(file, filename);
+	FILE *fp;
+	fp = fopen(filename,"w");
+
+	temp = 0;
+	int read_error = 0;
+	while((read_error=read(sockfd_client,&temp,1))){
+		fprintf(fp,"%c", temp);
+	}
+
+	fclose(fp);
 	close(sockfd);
 	close(sockfd_client);
-	return -1;
-}
 
-FILE *fp;
-fp=fopen("test.txt","w");
-
-
-	//int read_error = 0;
-temp = 0;
-int read_error = 0;
-while((read_error=read(sockfd_client,&temp,1))){
-	fprintf(fp,"%c", temp);
-}
-
-fclose(fp);
-close(sockfd);
-close(sockfd_client);
-
-
-exit(0);
-
-return 0;
-
+	return 0;
 }
 
 
@@ -371,23 +354,22 @@ void readArgs(char* args, char* user, char* pass, char* host, char* file, int in
 
 	file[inner_index] = '\n';
 	file[inner_index + 1] = '\0';
-
 }
 
 
 void getFilename(char *path, char * filename){
-    int length = strlen(path);
-    int i, filenameIndex = 0;
-    for(i = 0; i < length; i++) {
-        if(path[i] == '/') {
-            memset(filename,0,MAX_STRING_SIZE);
-            filenameIndex = 0;
-        }
-        else{
-            filename[filenameIndex] = path[i];
-            filenameIndex++;
-        }
-    }
+	int length = strlen(path);
+	int i, filenameIndex = 0;
+	for(i = 0; i < length; i++) {
+		if(path[i] == '/') {
+			memset(filename,0,MAX_STRING_SIZE);
+			filenameIndex = 0;
+		}
+		else{
+			filename[filenameIndex] = path[i];
+			filenameIndex++;
+		}
+	}
 }
 
 int verifyURL(char * url){
@@ -395,17 +377,17 @@ int verifyURL(char * url){
 	int reti;
 	char msgbuf[100];
 
-	/* Compile regular expression */
+	// compile regular expression 
 	reti = regcomp(&regex, "^ftp://([a-z0-9]+:[a-z0-9]+@)?([\\.a-z0-9-]+)/([\\./a-z0-9-]+)$", REG_EXTENDED|REG_ICASE);
 	if (reti) {
-			fprintf(stderr, "Could not compile regex\n");
-			exit(1);
+		fprintf(stderr, "Could not compile regex\n");
+		exit(1);
 	}
 
-	/* Execute regular expression */
+	// execute regular expression
 	reti = regexec(&regex, url , 0, NULL, 0);
 	if (!reti) {
-		puts("Valid URL checked!");
+		puts("\nValid URL checked!");
 		return 0;
 	}
 	else if (reti == REG_NOMATCH) {
@@ -413,11 +395,11 @@ int verifyURL(char * url){
 		return 1;
 	}
 	else {
-			regerror(reti, &regex, msgbuf, sizeof(msgbuf));
-			fprintf(stderr, "Regex match failed: %s\n", msgbuf);
-			exit(1);
+		regerror(reti, &regex, msgbuf, sizeof(msgbuf));
+		fprintf(stderr, "Regex match failed: %s\n", msgbuf);
+		exit(1);
 	}
 
-	/* Free memory allocated to the pattern buffer by regcomp() */
+	// free memory allocated to the pattern buffer by regcomp()
 	regfree(&regex);
 }
